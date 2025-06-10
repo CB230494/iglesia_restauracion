@@ -1,0 +1,22 @@
+import streamlit as st
+from scripts.db_ingresos import init_ingresos_table, insertar_ingreso
+
+# Inicializar la tabla de ingresos
+init_ingresos_table()
+
+st.title("📥 Registro de Ingresos - Iglesia Restauración")
+
+st.markdown("Complete el siguiente formulario para registrar un ingreso:")
+
+with st.form("form_ingreso"):
+    concepto = st.selectbox("Concepto", ["Diezmo", "Ofrenda", "Cocina", "Otro"])
+    monto = st.number_input("Monto (₡)", min_value=0.0, format="%.2f")
+    observacion = st.text_area("Observación (opcional)")
+    enviar = st.form_submit_button("Registrar Ingreso")
+
+    if enviar:
+        if monto > 0 and concepto:
+            insertar_ingreso(concepto, monto, observacion)
+            st.success("✅ Ingreso registrado correctamente.")
+        else:
+            st.error("❌ Por favor, complete todos los campos obligatorios.")
