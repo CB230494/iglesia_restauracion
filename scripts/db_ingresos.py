@@ -1,7 +1,7 @@
 import sqlite3
 from datetime import datetime
 
-DB_PATH = "database/db.sqlite"
+DB_PATH = "db.sqlite"  # Guardar directamente en la raíz
 
 def get_connection():
     return sqlite3.connect(DB_PATH, check_same_thread=False)
