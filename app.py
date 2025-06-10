@@ -1,16 +1,20 @@
 import streamlit as st
-from scripts.db_ingresos import init_ingresos_table, insertar_ingreso
-from scripts.db_gastos import init_gastos_table, insertar_gasto
+from scripts.db_ingresos import (
+    init_tables,
+    insertar_ingreso,
+    insertar_gasto
+)
 
-# Inicializar las tablas si no existen
-init_ingresos_table()
-init_gastos_table()
+# Inicializar base de datos y tablas
+init_tables()
 
 # Menú lateral
 st.sidebar.title("📌 Navegación")
 opcion = st.sidebar.radio("Ir a:", ["📥 Ingresos", "💸 Gastos", "📊 Reportes (próximamente)"])
 
-# Pantalla: INGRESOS
+# ==========================
+# 📥 REGISTRO DE INGRESOS
+# ==========================
 if opcion == "📥 Ingresos":
     st.title("📥 Registro de Ingresos - Iglesia Restauración")
 
@@ -27,7 +31,9 @@ if opcion == "📥 Ingresos":
             else:
                 st.error("❌ Por favor, complete todos los campos obligatorios.")
 
-# Pantalla: GASTOS
+# ==========================
+# 💸 REGISTRO DE GASTOS
+# ==========================
 elif opcion == "💸 Gastos":
     st.title("💸 Registro de Gastos - Iglesia Restauración")
 
@@ -44,7 +50,9 @@ elif opcion == "💸 Gastos":
             else:
                 st.error("❌ Por favor, complete todos los campos obligatorios.")
 
-# Pantalla: REPORTES (vacía por ahora)
+# ==========================
+# 📊 REPORTES (EN CONSTRUCCIÓN)
+# ==========================
 elif opcion == "📊 Reportes (próximamente)":
     st.title("📊 Reportes - En construcción...")
-    st.info("Muy pronto podrás visualizar ingresos y gastos por fecha, gráficos y exportar a PDF.")
+    st.info("Muy pronto podrás visualizar ingresos y gastos por fecha, ver gráficos y exportar a PDF.")
