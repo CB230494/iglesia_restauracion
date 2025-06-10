@@ -5,7 +5,7 @@ from scripts.db_ingresos import (
     insertar_gasto
 )
 
-# Inicializar base de datos y tablas
+# Inicializar la base de datos y las tablas si no existen
 init_tables()
 
 # Menú lateral
@@ -18,18 +18,62 @@ opcion = st.sidebar.radio("Ir a:", ["📥 Ingresos", "💸 Gastos", "📊 Report
 if opcion == "📥 Ingresos":
     st.title("📥 Registro de Ingresos - Iglesia Restauración")
 
-    with st.form("form_ingreso"):
-        concepto = st.selectbox("Concepto", ["Diezmo", "Ofrenda", "Cocina", "Otro"])
-        monto = st.number_input("Monto (₡)", min_value=0.0, format="%.2f")
-        observacion = st.text_area("Observación (opcional)")
-        enviar = st.form_submit_button("Registrar Ingreso")
+    concepto = st.selectbox("Concepto", ["Diezmo", "Ofrenda", "Cocina", "Otro"])
 
-        if enviar:
-            if monto > 0 and concepto:
-                insertar_ingreso(concepto, monto, observacion)
-                st.success("✅ Ingreso registrado correctamente.")
-            else:
-                st.error("❌ Por favor, complete todos los campos obligatorios.")
+    if concepto != "Cocina":
+        # Ingreso tradicional
+        with st.form("form_ingreso_normal"):
+            monto = st.number_input("Monto (₡)", min_value=0.0, format="%.2f")
+            observacion = st.text_area("Observación (opcional)")
+            enviar = st.form_submit_button("Registrar Ingreso")
+
+            if enviar:
+                if monto > 0:
+                    insertar_ingreso(concepto, monto, observacion)
+                    st.success("✅ Ingreso registrado correctamente.")
+                else:
+                    st.error("❌ El monto debe ser mayor a 0.")
+    else:
+        # Modo caja registradora (cocina)
+        st.subheader("🍽️ Registrar ventas de Cocina")
+
+        with st.form("form_cocina"):
+            productos = []
+            total = 0
+            col1, col2, col3 = st.columns([4, 2, 2])
+
+            with col1:
+                nombres = st.text_area("Productos vendidos (uno por línea)", placeholder="Ej: Refresco\nEmpanada\nQueque")
+
+            with col2:
+                precios = st.text_area("Precios unitarios (₡)", placeholder="Ej: 500\n700\n1200")
+
+            with col3:
+                cantidades = st.text_area("Cantidades", placeholder="Ej: 2\n3\n1")
+
+            registrar = st.form_submit_button("Registrar Ingreso Cocina")
+
+            if registrar:
+                try:
+                    nombres_list = nombres.strip().splitlines()
+                    precios_list = [float(p) for p in precios.strip().splitlines()]
+                    cantidades_list = [int(c) for c in cantidades.strip().splitlines()]
+
+                    if not (len(nombres_list) == len(precios_list) == len(cantidades_list)):
+                        st.error("❌ Todos los campos deben tener la misma cantidad de líneas.")
+                    else:
+                        detalles = []
+                        total = 0
+                        for i in range(len(nombres_list)):
+                            subtotal = precios_list[i] * cantidades_list[i]
+                            total += subtotal
+                            detalles.append(f"{cantidades_list[i]} x {nombres_list[i]} (₡{precios_list[i]:,.0f}) = ₡{subtotal:,.0f}")
+
+                        observacion = "\n".join(detalles)
+                        insertar_ingreso("Cocina", total, observacion)
+                        st.success(f"✅ Ingreso por Cocina registrado por un total de ₡{total:,.0f}")
+                except:
+                    st.error("❌ Verifica que los precios sean números (ej: 500) y las cantidades enteros (ej: 2)")
 
 # ==========================
 # 💸 REGISTRO DE GASTOS
@@ -56,3 +100,4 @@ elif opcion == "💸 Gastos":
 elif opcion == "📊 Reportes (próximamente)":
     st.title("📊 Reportes - En construcción...")
     st.info("Muy pronto podrás visualizar ingresos y gastos por fecha, ver gráficos y exportar a PDF.")
+
