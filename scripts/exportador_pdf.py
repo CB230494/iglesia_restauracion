@@ -1,5 +1,6 @@
+# scripts/exportador_pdf.py
+
 from fpdf import FPDF
-from datetime import datetime
 
 class PDFReporte(FPDF):
     def header(self):
@@ -18,7 +19,6 @@ class PDFReporte(FPDF):
             border=1, align="L", fill=True)
         self.ln(3)
 
-        # Introducción adaptada
         dias = (fecha_final - fecha_inicio).days + 1
         if dias <= 1:
             tipo = "diario"
@@ -50,9 +50,9 @@ class PDFReporte(FPDF):
         self.cell(60, 10, f"{gastos:,.2f}", 1, 1)
 
         if balance >= 0:
-            self.set_text_color(0, 128, 0)  # verde
+            self.set_text_color(0, 128, 0)
         else:
-            self.set_text_color(200, 0, 0)  # rojo
+            self.set_text_color(200, 0, 0)
 
         self.cell(60, 10, "Balance", 1)
         self.cell(60, 10, f"{balance:,.2f}", 1, 1)
@@ -76,3 +76,4 @@ class PDFReporte(FPDF):
                 self.cell(45, 7, texto[:30], 1)
             self.ln()
         self.ln(4)
+
