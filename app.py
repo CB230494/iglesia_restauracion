@@ -45,7 +45,7 @@ if opcion == "📥 Ingresos":
                 if monto > 0:
                     insertar_ingreso(fecha, concepto, monto, observacion)
                     st.success("✅ Ingreso registrado correctamente.")
-                    st.experimental_rerun()
+                    st.rerun()
                 else:
                     st.error("❌ El monto debe ser mayor a 0.")
 
@@ -84,7 +84,7 @@ if opcion == "📥 Ingresos":
                         obs = "\n".join(detalle)
                         insertar_ingreso(fecha, "Cocina", total, obs)
                         st.success(f"✅ Cocina registrada por ₡{total:,.0f}")
-                        st.experimental_rerun()
+                        st.rerun()
                 except:
                     st.error("❌ Verifica que precios y cantidades sean válidos.")
 
@@ -121,12 +121,11 @@ if opcion == "📥 Ingresos":
             if actualizar:
                 actualizar_ingreso(row[0], fecha_edit, concepto_edit, monto_edit, observacion_edit)
                 st.success("✅ Ingreso actualizado correctamente.")
-                st.experimental_rerun()
+                st.rerun()
 
             if eliminar:
                 eliminar_ingreso(row[0])
                 st.warning("🗑️ Ingreso eliminado.")
-                st.experimental_rerun()
+                st.rerun()
     else:
         st.info("No hay ingresos registrados aún.")
-
