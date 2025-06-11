@@ -6,8 +6,13 @@ from scripts.db_ingresos import (
     insertar_ingreso,
     obtener_ingresos,
     actualizar_ingreso,
-    eliminar_ingreso
+    eliminar_ingreso,
+    insertar_gasto,
+    obtener_gastos,
+    actualizar_gasto,
+    eliminar_gasto
 )
+
 
 # Inicializar base de datos
 init_tables()
