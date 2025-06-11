@@ -1,6 +1,7 @@
 import streamlit as st
 import pandas as pd
 from datetime import date
+from scripts.exportador_pdf import PDFReporte
 from scripts.db_ingresos import (
     init_tables,
     insertar_ingreso,
