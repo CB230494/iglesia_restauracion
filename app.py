@@ -9,7 +9,7 @@ from scripts.db_ingresos import (
     eliminar_ingreso
 )
 
-# Inicializar tablas
+# Inicializar base de datos
 init_tables()
 
 # Menú lateral
@@ -17,10 +17,10 @@ st.sidebar.title("📌 Navegación")
 opcion = st.sidebar.radio("Ir a:", ["📥 Ingresos", "💸 Gastos", "📊 Reportes"])
 
 # =====================================
-# 📥 INGRESOS (REGISTRO Y GESTIÓN)
+# 📥 INGRESOS - IGLESIA RESTAURACIÓN COLONIA CARVAJAL
 # =====================================
 if opcion == "📥 Ingresos":
-    st.title("📥 Registro de Ingresos - Iglesia Restauración")
+    st.title("📥 Registro de Ingresos - Iglesia Restauración Colonia Carvajal")
 
     concepto = st.selectbox("Concepto", ["Diezmo", "Ofrenda", "Cocina", "Otro"], key="concepto_select")
 
@@ -126,5 +126,4 @@ if opcion == "📥 Ingresos":
                 st.experimental_rerun()
     else:
         st.info("No hay ingresos registrados aún.")
-
 
