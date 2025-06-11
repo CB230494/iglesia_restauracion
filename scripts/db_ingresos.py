@@ -73,3 +73,35 @@ def eliminar_ingreso(id):
     conn.commit()
     conn.close()
 
+def insertar_gasto(fecha_date_obj, motivo, monto, observacion=""):
+    fecha_str = fecha_date_obj.strftime("%d/%m/%Y")
+    conn = get_connection()
+    cursor = conn.cursor()
+    cursor.execute("INSERT INTO gastos (fecha, motivo, monto, observacion) VALUES (?, ?, ?, ?)",
+                   (fecha_str, motivo, monto, observacion))
+    conn.commit()
+    conn.close()
+
+def obtener_gastos():
+    conn = get_connection()
+    cursor = conn.cursor()
+    cursor.execute("SELECT * FROM gastos ORDER BY id DESC")
+    data = cursor.fetchall()
+    conn.close()
+    return data
+
+def actualizar_gasto(id, fecha_date_obj, motivo, monto, observacion):
+    fecha_str = fecha_date_obj.strftime("%d/%m/%Y")
+    conn = get_connection()
+    cursor = conn.cursor()
+    cursor.execute("UPDATE gastos SET fecha = ?, motivo = ?, monto = ?, observacion = ? WHERE id = ?",
+                   (fecha_str, motivo, monto, observacion, id))
+    conn.commit()
+    conn.close()
+
+def eliminar_gasto(id):
+    conn = get_connection()
+    cursor = conn.cursor()
+    cursor.execute("DELETE FROM gastos WHERE id = ?", (id,))
+    conn.commit()
+    conn.close()
