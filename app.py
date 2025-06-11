@@ -33,6 +33,7 @@ if opcion == "📥 Ingresos":
             col1, col2 = st.columns(2)
             with col1:
                 fecha = st.date_input("Fecha del ingreso", value=date.today())
+                st.markdown(f"📅 Fecha seleccionada: **{fecha.strftime('%d/%m/%Y')}**")
                 monto = st.number_input("Monto (₡)", min_value=0.0, format="%.2f")
             with col2:
                 concepto_display = st.text_input("Concepto", value=concepto, disabled=True)
@@ -57,6 +58,7 @@ if opcion == "📥 Ingresos":
             col1, col2 = st.columns(2)
             with col1:
                 fecha = st.date_input("Fecha de la venta", value=date.today())
+                st.markdown(f"📅 Fecha seleccionada: **{fecha.strftime('%d/%m/%Y')}**")
                 nombres = st.text_area("Productos (uno por línea)", placeholder="Ej: Refresco\nEmpanada")
             with col2:
                 precios = st.text_area("Precios unitarios", placeholder="Ej: 500\n700")
@@ -106,6 +108,7 @@ if opcion == "📥 Ingresos":
             col1, col2 = st.columns(2)
             with col1:
                 fecha_edit = st.date_input("Fecha", value=pd.to_datetime(row[1], dayfirst=True).date())
+                st.markdown(f"📅 Fecha seleccionada: **{fecha_edit.strftime('%d/%m/%Y')}**")
                 concepto_edit = st.selectbox("Concepto", ["Diezmo", "Ofrenda", "Cocina", "Otro"], index=["Diezmo", "Ofrenda", "Cocina", "Otro"].index(row[2]))
                 monto_edit = st.number_input("Monto", value=row[3], min_value=0.0, format="%.2f", key="edit_monto")
             with col2:
