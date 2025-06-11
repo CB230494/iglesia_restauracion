@@ -34,7 +34,7 @@ if opcion == "📥 Ingresos":
     # ====================
     if concepto != "Cocina":
         st.markdown("### ➕ Nuevo ingreso")
-        with st.form("form_ingreso_normal"):
+        with st.form("form_ingreso_normal", clear_on_submit=True):
             col1, col2 = st.columns(2)
             with col1:
                 fecha = st.date_input("Fecha del ingreso", value=date.today())
@@ -49,8 +49,8 @@ if opcion == "📥 Ingresos":
             if enviar:
                 if monto > 0:
                     insertar_ingreso(fecha, concepto, monto, observacion)
-                    st.success("✅ Ingreso registrado correctamente.")
-                    st.rerun()
+                    st.success(f"✅ Ingreso registrado correctamente como {concepto}.")
+                    st.experimental_rerun()
                 else:
                     st.error("❌ El monto debe ser mayor a 0.")
 
@@ -59,7 +59,7 @@ if opcion == "📥 Ingresos":
     # ====================
     else:
         st.markdown("### 🍽️ Cocina - Caja registradora")
-        with st.form("form_cocina"):
+        with st.form("form_cocina", clear_on_submit=True):
             col1, col2 = st.columns(2)
             with col1:
                 fecha = st.date_input("Fecha de la venta", value=date.today())
@@ -88,8 +88,8 @@ if opcion == "📥 Ingresos":
                             detalle.append(f"{cantidades_list[i]} x {nombres_list[i]} (₡{precios_list[i]:,.0f}) = ₡{sub:,.0f}")
                         obs = "\n".join(detalle)
                         insertar_ingreso(fecha, "Cocina", total, obs)
-                        st.success(f"✅ Cocina registrada por ₡{total:,.0f}")
-                        st.rerun()
+                        st.success(f"✅ Ingreso registrado: Cocina por ₡{total:,.0f} (ej. almuerzo agregado)")
+                        st.experimental_rerun()
                 except Exception as e:
                     st.error("❌ Verifica que precios y cantidades sean válidos.")
 
@@ -126,15 +126,14 @@ if opcion == "📥 Ingresos":
             if actualizar:
                 actualizar_ingreso(row[0], fecha_edit, concepto_edit, monto_edit, observacion_edit)
                 st.success("✅ Ingreso actualizado correctamente.")
-                st.rerun()
+                st.experimental_rerun()
 
             if eliminar:
                 eliminar_ingreso(row[0])
                 st.warning("🗑️ Ingreso eliminado.")
-                st.rerun()
+                st.experimental_rerun()
     else:
         st.info("No hay ingresos registrados aún.")
-
 
 # =====================================
 # 💸 GASTOS - IGLESIA RESTAURACIÓN COLONIA CARVAJAL
@@ -143,7 +142,7 @@ elif opcion == "💸 Gastos":
     st.title("💸 Registro de Gastos - Iglesia Restauración Colonia Carvajal")
 
     st.markdown("### ➕ Nuevo gasto")
-    with st.form("form_gasto"):
+    with st.form("form_gasto", clear_on_submit=True):
         col1, col2 = st.columns(2)
         with col1:
             fecha = st.date_input("Fecha del gasto", value=date.today())
@@ -158,8 +157,8 @@ elif opcion == "💸 Gastos":
         if enviar:
             if motivo and monto > 0:
                 insertar_gasto(fecha, motivo, monto, observacion)
-                st.success("✅ Gasto registrado correctamente.")
-                st.rerun()
+                st.success(f"✅ Gasto registrado correctamente: {motivo} por ₡{monto:,.2f}")
+                st.experimental_rerun()
             else:
                 st.error("❌ Todos los campos obligatorios deben estar completos.")
 
@@ -193,14 +192,15 @@ elif opcion == "💸 Gastos":
             if actualizar:
                 actualizar_gasto(row[0], fecha_edit, motivo_edit, monto_edit, observacion_edit)
                 st.success("✅ Gasto actualizado correctamente.")
-                st.rerun()
+                st.experimental_rerun()
 
             if eliminar:
                 eliminar_gasto(row[0])
                 st.warning("🗑️ Gasto eliminado.")
-                st.rerun()
+                st.experimental_rerun()
     else:
         st.info("No hay gastos registrados aún.")
+
 
 # =====================================
 # 📊 REPORTES - IGLESIA RESTAURACIÓN COLONIA CARVAJAL
@@ -256,44 +256,38 @@ elif opcion == "📊 Reportes":
             else:
                 st.info("No hay gastos en este rango.")
 
-# ===============================
-# Exportar informe en PDF (con limpieza interna)
-# ===============================
-if ingresos_filtrados or gastos_filtrados:
-    st.markdown("### 📄 Exportar informe")
-    if st.button("📄 Exportar informe en PDF"):
-        pdf = PDFReporte()
-        pdf.add_page()
-        pdf.add_leyenda(fecha_inicio, fecha_final)
-        pdf.add_cuadro_resumen(total_ingresos, total_gastos, balance)
+        # Exportar PDF (solo si hay datos)
+        if ingresos_filtrados or gastos_filtrados:
+            st.markdown("### 📄 Exportar informe")
+            if st.button("📄 Exportar informe en PDF"):
+                pdf = PDFReporte()
+                pdf.add_page()
+                pdf.add_leyenda(fecha_inicio, fecha_final)
+                pdf.add_cuadro_resumen(total_ingresos, total_gastos, balance)
 
-        # Ingresos agrupados por concepto
-        if ingresos_filtrados:
-            resumen = {}
-            for i in ingresos_filtrados:
-                concepto = i[2]
-                resumen[concepto] = resumen.get(concepto, 0) + i[3]
+                # Agrupar ingresos por concepto
+                if ingresos_filtrados:
+                    resumen = {}
+                    for i in ingresos_filtrados:
+                        concepto = i[2]
+                        resumen[concepto] = resumen.get(concepto, 0) + i[3]
 
-            columnas_i = ["Concepto", "Total"]
-            datos_i = [[k, f"{v:,.2f}"] for k, v in resumen.items()]
-            pdf.add_tabla_detalle("Ingresos por concepto", datos_i, columnas_i)
+                    columnas_i = ["Concepto", "Total"]
+                    datos_i = [[k, f"{v:,.2f}"] for k, v in resumen.items()]
+                    pdf.add_tabla_detalle("Ingresos por concepto", datos_i, columnas_i)
 
-        # Gastos detallados
-        if gastos_filtrados:
-            columnas_g = ["Fecha", "Motivo", "Monto"]
-            datos_g = [
-                [g[1], g[2], f"{g[3]:,.2f}"]
-                for g in gastos_filtrados
-            ]
-            pdf.add_tabla_detalle("Gastos registrados", datos_g, columnas_g)
+                # Detalle de gastos
+                if gastos_filtrados:
+                    columnas_g = ["Fecha", "Motivo", "Monto"]
+                    datos_g = [[g[1], g[2], f"{g[3]:,.2f}"] for g in gastos_filtrados]
+                    pdf.add_tabla_detalle("Gastos registrados", datos_g, columnas_g)
 
-        # Exportar PDF sin errores de codificación
-        pdf_bytes = pdf.output(dest="S").encode("latin-1", errors="replace")
-        st.download_button(
-            "⬇️ Descargar PDF",
-            data=pdf_bytes,
-            file_name="informe_financiero.pdf",
-            mime="application/pdf"
-        )
+                pdf_bytes = pdf.output(dest="S").encode("latin-1", errors="replace")
+                st.download_button(
+                    "⬇️ Descargar PDF",
+                    data=pdf_bytes,
+                    file_name="informe_financiero.pdf",
+                    mime="application/pdf"
+                )
 
 
