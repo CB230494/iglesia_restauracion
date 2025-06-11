@@ -256,27 +256,32 @@ elif opcion == "📊 Reportes":
             else:
                 st.info("No hay gastos en este rango.")
 
-        # Exportar PDF
-        if ingresos_filtrados or gastos_filtrados:
-            st.markdown("### 📄 Exportar informe")
-            if st.button("📄 Exportar informe en PDF"):
-                pdf = PDFReporte()
-                pdf.add_page()
-                pdf.add_leyenda(fecha_inicio, fecha_final)
-                pdf.add_cuadro_resumen(total_ingresos, total_gastos, balance)
+       # Exportar PDF
+if ingresos_filtrados or gastos_filtrados:
+    st.markdown("### 📄 Exportar informe")
+    if st.button("📄 Exportar informe en PDF"):
+        pdf = PDFReporte()
+        pdf.add_page()
+        pdf.add_leyenda(fecha_inicio, fecha_final)
+        pdf.add_cuadro_resumen(total_ingresos, total_gastos, balance)
 
-                if ingresos_filtrados:
-                    columnas_i = ["Fecha", "Concepto", "Monto"]
-                    datos_i = [[i[1], i[2], f"{i[3]:,.2f}"] for i in ingresos_filtrados]
-                    pdf.add_tabla_detalle("Ingresos registrados", datos_i, columnas_i)
+        if ingresos_filtrados:
+            resumen = {}
+            for i in ingresos_filtrados:
+                concepto = i[2]
+                resumen[concepto] = resumen.get(concepto, 0) + i[3]
 
-                if gastos_filtrados:
-                    columnas_g = ["Fecha", "Motivo", "Monto"]
-                    datos_g = [[g[1], g[2], f"{g[3]:,.2f}"] for g in gastos_filtrados]
-                    pdf.add_tabla_detalle("Gastos registrados", datos_g, columnas_g)
+            columnas_i = ["Concepto", "Total"]
+            datos_i = [[k, f"{v:,.2f}"] for k, v in resumen.items()]
+            pdf.add_tabla_detalle("Ingresos por concepto", datos_i, columnas_i)
 
-                pdf_bytes = pdf.output(dest="S").encode("latin-1")
-                st.download_button("⬇️ Descargar PDF", data=pdf_bytes, file_name="informe_financiero.pdf", mime="application/pdf")
+        if gastos_filtrados:
+            columnas_g = ["Fecha", "Motivo", "Monto"]
+            datos_g = [[g[1], g[2], f"{g[3]:,.2f}"] for g in gastos_filtrados]
+            pdf.add_tabla_detalle("Gastos registrados", datos_g, columnas_g)
+
+        pdf_bytes = pdf.output(dest="S").encode("latin-1")
+        st.download_button("⬇️ Descargar PDF", data=pdf_bytes, file_name="informe_financiero.pdf", mime="application/pdf")
 
 
 
