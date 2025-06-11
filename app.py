@@ -256,7 +256,7 @@ elif opcion == "📊 Reportes":
             else:
                 st.info("No hay gastos en este rango.")
 
-    # Exportar PDF
+   # Exportar PDF
 if ingresos_filtrados or gastos_filtrados:
     st.markdown("### 📄 Exportar informe")
     if st.button("📄 Exportar informe en PDF"):
@@ -265,25 +265,28 @@ if ingresos_filtrados or gastos_filtrados:
         pdf.add_leyenda(fecha_inicio, fecha_final)
         pdf.add_cuadro_resumen(total_ingresos, total_gastos, balance)
 
-        # Ingresos: mostrar solo totales por concepto
+        # Ingresos por concepto
         if ingresos_filtrados:
             resumen = {}
             for i in ingresos_filtrados:
-                concepto = i[2]
+                concepto = limpiar_texto(i[2])
                 resumen[concepto] = resumen.get(concepto, 0) + i[3]
 
             columnas_i = ["Concepto", "Total"]
             datos_i = [[k, f"{v:,.2f}"] for k, v in resumen.items()]
             pdf.add_tabla_detalle("Ingresos por concepto", datos_i, columnas_i)
 
-        # Gastos: mostrar detalle
+        # Gastos detallados
         if gastos_filtrados:
             columnas_g = ["Fecha", "Motivo", "Monto"]
-            datos_g = [[g[1], g[2], f"{g[3]:,.2f}"] for g in gastos_filtrados]
+            datos_g = [
+                [limpiar_texto(g[1]), limpiar_texto(g[2]), f"{g[3]:,.2f}"]
+                for g in gastos_filtrados
+            ]
             pdf.add_tabla_detalle("Gastos registrados", datos_g, columnas_g)
 
         try:
-            pdf_bytes = pdf.output(dest="S").encode("latin-1", errors="replace")
+            pdf_bytes = pdf.output(dest="S").encode("latin-1", errors="strict")
             st.download_button(
                 "⬇️ Descargar PDF",
                 data=pdf_bytes,
@@ -291,6 +294,6 @@ if ingresos_filtrados or gastos_filtrados:
                 mime="application/pdf"
             )
         except UnicodeEncodeError:
-            st.error("❌ Error al generar el PDF. Evite usar emojis o símbolos especiales.")
+            st.error("❌ Error al generar el PDF. Verifique que no haya emojis o símbolos no compatibles.")
 
 
