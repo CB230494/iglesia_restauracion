@@ -250,8 +250,6 @@ elif opcion == "📊 Reportes":
             else:
                 st.info("No hay gastos en este rango.")
 
-from scripts.exportador_pdf import PDFReporte
-
         # Botón para exportar
         if ingresos_filtrados or gastos_filtrados:
             if st.button("📄 Exportar informe en PDF"):
@@ -270,7 +268,6 @@ from scripts.exportador_pdf import PDFReporte
                     datos_g = [[str(g[0]), g[1], g[2], f"{g[3]:,.2f}"] for g in gastos_filtrados]
                     pdf.add_tabla_detalle("Gastos registrados", datos_g, columnas_g)
 
-                # Guardar PDF en memoria y mostrar para descargar
                 import io
                 pdf_output = io.BytesIO()
                 pdf.output(pdf_output)
