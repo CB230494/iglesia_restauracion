@@ -256,16 +256,8 @@ elif opcion == "📊 Reportes":
             else:
                 st.info("No hay gastos en este rango.")
 
-  # ===============================
-# Función para limpiar caracteres incompatibles
 # ===============================
-def limpiar_texto(texto):
-    if not isinstance(texto, str):
-        texto = str(texto)
-    return texto.encode("latin-1", "replace").decode("latin-1")
-
-# ===============================
-# Exportar informe en PDF
+# Exportar informe en PDF (con limpieza interna)
 # ===============================
 if ingresos_filtrados or gastos_filtrados:
     st.markdown("### 📄 Exportar informe")
@@ -279,7 +271,7 @@ if ingresos_filtrados or gastos_filtrados:
         if ingresos_filtrados:
             resumen = {}
             for i in ingresos_filtrados:
-                concepto = limpiar_texto(i[2])
+                concepto = i[2]
                 resumen[concepto] = resumen.get(concepto, 0) + i[3]
 
             columnas_i = ["Concepto", "Total"]
@@ -290,20 +282,18 @@ if ingresos_filtrados or gastos_filtrados:
         if gastos_filtrados:
             columnas_g = ["Fecha", "Motivo", "Monto"]
             datos_g = [
-                [limpiar_texto(g[1]), limpiar_texto(g[2]), f"{g[3]:,.2f}"]
+                [g[1], g[2], f"{g[3]:,.2f}"]
                 for g in gastos_filtrados
             ]
             pdf.add_tabla_detalle("Gastos registrados", datos_g, columnas_g)
 
-        try:
-            pdf_bytes = pdf.output(dest="S").encode("latin-1", errors="strict")
-            st.download_button(
-                "⬇️ Descargar PDF",
-                data=pdf_bytes,
-                file_name="informe_financiero.pdf",
-                mime="application/pdf"
-            )
-        except UnicodeEncodeError:
-            st.error("❌ Error al generar el PDF. Verifique que no haya emojis o símbolos no compatibles.")
+        # Exportar PDF sin errores de codificación
+        pdf_bytes = pdf.output(dest="S").encode("latin-1", errors="replace")
+        st.download_button(
+            "⬇️ Descargar PDF",
+            data=pdf_bytes,
+            file_name="informe_financiero.pdf",
+            mime="application/pdf"
+        )
 
 
