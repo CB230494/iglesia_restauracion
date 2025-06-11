@@ -72,25 +72,23 @@ if opcion == "📥 Ingresos":
             registrar = st.form_submit_button("Registrar Ingreso Cocina")
 
             if registrar:
-                try:
-                    nombres_list = nombres.strip().splitlines()
-                    precios_list = [float(p) for p in precios.strip().splitlines()]
-                    cantidades_list = [int(c) for c in cantidades.strip().splitlines()]
+                nombres_list = nombres.strip().splitlines()
+                precios_list = [float(p) for p in precios.strip().splitlines()]
+                cantidades_list = [int(c) for c in cantidades.strip().splitlines()]
 
-                    if len(nombres_list) != len(precios_list) or len(precios_list) != len(cantidades_list):
-                        st.error("❌ Las listas deben tener la misma cantidad de líneas.")
-                    else:
-                        total = 0
-                        detalle = []
-                        for i in range(len(nombres_list)):
-                            sub = precios_list[i] * cantidades_list[i]
-                            total += sub
-                            detalle.append(f"{cantidades_list[i]} x {nombres_list[i]} (₡{precios_list[i]:,.0f}) = ₡{sub:,.0f}")
-                        obs = "\n".join(detalle)
-                        insertar_ingreso(fecha, "Cocina", total, obs)
-                        st.success(f"✅ Ingreso registrado: Cocina por ₡{total:,.0f} (ej. almuerzo agregado)")
-                        st.experimental_rerun()
-
+                if len(nombres_list) != len(precios_list) or len(precios_list) != len(cantidades_list):
+                    pass  # Silenciar errores, no mostrar nada
+                else:
+                    total = 0
+                    detalle = []
+                    for i in range(len(nombres_list)):
+                        sub = precios_list[i] * cantidades_list[i]
+                        total += sub
+                        detalle.append(f"{cantidades_list[i]} x {nombres_list[i]} (₡{precios_list[i]:,.0f}) = ₡{sub:,.0f}")
+                    obs = "\n".join(detalle)
+                    insertar_ingreso(fecha, "Cocina", total, obs)
+                    st.success(f"✅ Ingreso registrado: Cocina por ₡{total:,.0f} (ej. almuerzo agregado)")
+                    st.experimental_rerun()
 
     # ====================
     # CRUD INGRESOS
@@ -133,6 +131,7 @@ if opcion == "📥 Ingresos":
                 st.experimental_rerun()
     else:
         st.info("No hay ingresos registrados aún.")
+
 
 # =====================================
 # 💸 GASTOS - IGLESIA RESTAURACIÓN COLONIA CARVAJAL
