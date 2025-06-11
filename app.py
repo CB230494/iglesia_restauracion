@@ -129,3 +129,66 @@ if opcion == "📥 Ingresos":
                 st.rerun()
     else:
         st.info("No hay ingresos registrados aún.")
+
+elif opcion == "💸 Gastos":
+    st.title("💸 Registro de Gastos - Iglesia Restauración Colonia Carvajal")
+
+    st.markdown("### ➕ Nuevo gasto")
+    with st.form("form_gasto"):
+        col1, col2 = st.columns(2)
+        with col1:
+            fecha = st.date_input("Fecha del gasto", value=date.today())
+            st.markdown(f"📅 Fecha seleccionada: **{fecha.strftime('%d/%m/%Y')}**")
+            motivo = st.text_input("Motivo")
+        with col2:
+            monto = st.number_input("Monto (₡)", min_value=0.0, format="%.2f")
+            observacion = st.text_area("Observación (opcional)")
+
+        enviar = st.form_submit_button("Registrar Gasto")
+
+        if enviar:
+            if motivo and monto > 0:
+                insertar_gasto(fecha, motivo, monto, observacion)
+                st.success("✅ Gasto registrado correctamente.")
+                st.rerun()
+            else:
+                st.error("❌ Todos los campos obligatorios deben estar completos.")
+
+    st.markdown("---")
+    st.subheader("🧾 Gastos registrados")
+    gastos = obtener_gastos()
+
+    if gastos:
+        df = pd.DataFrame(gastos, columns=["ID", "Fecha", "Motivo", "Monto", "Observación"])
+        st.dataframe(df, use_container_width=True)
+
+        st.markdown("### ✏️ Editar / Eliminar gasto")
+        gasto_ids = [str(g[0]) for g in gastos]
+        selected_id = st.selectbox("Selecciona el ID del gasto", gasto_ids)
+
+        row = next(g for g in gastos if str(g[0]) == selected_id)
+        with st.form("edit_gasto"):
+            col1, col2 = st.columns(2)
+            with col1:
+                fecha_edit = st.date_input("Fecha", value=pd.to_datetime(row[1], dayfirst=True).date())
+                st.markdown(f"📅 Fecha seleccionada: **{fecha_edit.strftime('%d/%m/%Y')}**")
+                motivo_edit = st.text_input("Motivo", value=row[2])
+            with col2:
+                monto_edit = st.number_input("Monto", value=row[3], min_value=0.0, format="%.2f", key="edit_monto_gasto")
+                observacion_edit = st.text_area("Observación", value=row[4], key="edit_obs_gasto")
+
+            col3, col4 = st.columns(2)
+            actualizar = col3.form_submit_button("💾 Actualizar")
+            eliminar = col4.form_submit_button("🗑️ Eliminar")
+
+            if actualizar:
+                actualizar_gasto(row[0], fecha_edit, motivo_edit, monto_edit, observacion_edit)
+                st.success("✅ Gasto actualizado correctamente.")
+                st.rerun()
+
+            if eliminar:
+                eliminar_gasto(row[0])
+                st.warning("🗑️ Gasto eliminado.")
+                st.rerun()
+    else:
+        st.info("No hay gastos registrados aún.")
