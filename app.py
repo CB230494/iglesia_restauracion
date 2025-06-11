@@ -1,7 +1,6 @@
 import streamlit as st
 import pandas as pd
 from datetime import date
-from scripts.exportador_pdf import PDFReporte
 from scripts.db_ingresos import (
     init_tables,
     insertar_ingreso,
@@ -13,19 +12,20 @@ from scripts.db_ingresos import (
     actualizar_gasto,
     eliminar_gasto
 )
+from scripts.exportador_pdf import PDFReporte
 
 # Inicializar base de datos
 init_tables()
 
 # Menú lateral
 st.sidebar.title("📌 Navegación")
-opcion = st.sidebar.radio("Ir a:", ["📅 Ingresos", "💸 Gastos", "📊 Reportes"])
+opcion = st.sidebar.radio("Ir a:", ["📥 Ingresos", "💸 Gastos", "📊 Reportes"])
 
 # =====================================
-# 📅 INGRESOS - IGLESIA RESTAURACIÓN COLONIA CARVAJAL
+# 📥 INGRESOS - IGLESIA RESTAURACIÓN COLONIA CARVAJAL
 # =====================================
-if opcion == "📅 Ingresos":
-    st.title("📅 Registro de Ingresos - Iglesia Restauración Colonia Carvajal")
+if opcion == "📥 Ingresos":
+    st.title("📥 Registro de Ingresos - Iglesia Restauración Colonia Carvajal")
 
     concepto = st.selectbox("Concepto", ["Diezmo", "Ofrenda", "Cocina", "Otro"], key="concepto_select")
 
@@ -38,7 +38,7 @@ if opcion == "📅 Ingresos":
             col1, col2 = st.columns(2)
             with col1:
                 fecha = st.date_input("Fecha del ingreso", value=date.today())
-                st.markdown(f"🗓️ Fecha seleccionada: **{fecha.strftime('%d/%m/%Y')}**")
+                st.markdown(f"📅 Fecha seleccionada: **{fecha.strftime('%d/%m/%Y')}**")
                 monto = st.number_input("Monto (₡)", min_value=0.0, format="%.2f")
             with col2:
                 concepto_display = st.text_input("Concepto", value=concepto, disabled=True)
@@ -63,7 +63,7 @@ if opcion == "📅 Ingresos":
             col1, col2 = st.columns(2)
             with col1:
                 fecha = st.date_input("Fecha de la venta", value=date.today())
-                st.markdown(f"🗓️ Fecha seleccionada: **{fecha.strftime('%d/%m/%Y')}**")
+                st.markdown(f"📅 Fecha seleccionada: **{fecha.strftime('%d/%m/%Y')}**")
                 nombres = st.text_area("Productos (uno por línea)", placeholder="Ej: Refresco\nEmpanada")
             with col2:
                 precios = st.text_area("Precios unitarios", placeholder="Ej: 500\n700")
@@ -92,6 +92,48 @@ if opcion == "📅 Ingresos":
                         st.rerun()
                 except:
                     st.error("❌ Verifica que precios y cantidades sean válidos.")
+
+    # ====================
+    # CRUD INGRESOS
+    # ====================
+    st.markdown("---")
+    st.subheader("🧾 Ingresos registrados")
+    ingresos = obtener_ingresos()
+
+    if ingresos:
+        df = pd.DataFrame(ingresos, columns=["ID", "Fecha", "Concepto", "Monto", "Observación"])
+        st.dataframe(df, use_container_width=True)
+
+        st.markdown("### ✏️ Editar / Eliminar ingreso")
+        ingreso_ids = [str(i[0]) for i in ingresos]
+        selected_id = st.selectbox("Selecciona el ID del ingreso", ingreso_ids)
+
+        row = next(i for i in ingresos if str(i[0]) == selected_id)
+        with st.form("edit_ingreso"):
+            col1, col2 = st.columns(2)
+            with col1:
+                fecha_edit = st.date_input("Fecha", value=pd.to_datetime(row[1], dayfirst=True).date())
+                st.markdown(f"📅 Fecha seleccionada: **{fecha_edit.strftime('%d/%m/%Y')}**")
+                concepto_edit = st.selectbox("Concepto", ["Diezmo", "Ofrenda", "Cocina", "Otro"], index=["Diezmo", "Ofrenda", "Cocina", "Otro"].index(row[2]))
+                monto_edit = st.number_input("Monto", value=row[3], min_value=0.0, format="%.2f", key="edit_monto")
+            with col2:
+                observacion_edit = st.text_area("Observación", value=row[4], key="edit_obs")
+
+            col3, col4 = st.columns(2)
+            actualizar = col3.form_submit_button("💾 Actualizar")
+            eliminar = col4.form_submit_button("🗑️ Eliminar")
+
+            if actualizar:
+                actualizar_ingreso(row[0], fecha_edit, concepto_edit, monto_edit, observacion_edit)
+                st.success("✅ Ingreso actualizado correctamente.")
+                st.rerun()
+
+            if eliminar:
+                eliminar_ingreso(row[0])
+                st.warning("🗑️ Ingreso eliminado.")
+                st.rerun()
+    else:
+        st.info("No hay ingresos registrados aún.")
 
 # =====================================
 # 💸 GASTOS - IGLESIA RESTAURACIÓN COLONIA CARVAJAL
@@ -191,7 +233,6 @@ elif opcion == "📊 Reportes":
 
         st.markdown("### 📋 Resumen financiero")
         col1, col2, col3 = st.columns(3)
-
         col1.metric("💰 Total de ingresos", f"₡{total_ingresos:,.2f}")
         col2.metric("💸 Total de gastos", f"₡{total_gastos:,.2f}")
 
@@ -213,7 +254,8 @@ elif opcion == "📊 Reportes":
                 st.dataframe(df_g, use_container_width=True)
             else:
                 st.info("No hay gastos en este rango.")
-# Botón para exportar el informe en PDF
+
+        # Exportar PDF
         if ingresos_filtrados or gastos_filtrados:
             st.markdown("### 📄 Exportar informe")
             if st.button("📄 Exportar informe en PDF"):
@@ -232,13 +274,8 @@ elif opcion == "📊 Reportes":
                     datos_g = [[g[1], g[2], f"{g[3]:,.2f}"] for g in gastos_filtrados]
                     pdf.add_tabla_detalle("Gastos registrados", datos_g, columnas_g)
 
-                # Exportar como PDF en memoria codificado correctamente
                 pdf_bytes = pdf.output(dest="S").encode("latin-1")
-                st.download_button(
-                    "⬇️ Descargar PDF",
-                    data=pdf_bytes,
-                    file_name="informe_financiero.pdf",
-                    mime="application/pdf"
-                )
+                st.download_button("⬇️ Descargar PDF", data=pdf_bytes, file_name="informe_financiero.pdf", mime="application/pdf")
+
 
 
