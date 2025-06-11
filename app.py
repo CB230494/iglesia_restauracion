@@ -249,3 +249,30 @@ elif opcion == "📊 Reportes":
                 st.dataframe(df_g, use_container_width=True)
             else:
                 st.info("No hay gastos en este rango.")
+
+from scripts.exportador_pdf import PDFReporte
+
+        # Botón para exportar
+        if ingresos_filtrados or gastos_filtrados:
+            if st.button("📄 Exportar informe en PDF"):
+                pdf = PDFReporte()
+                pdf.add_page()
+                pdf.add_leyenda(fecha_inicio, fecha_final)
+                pdf.add_cuadro_resumen(total_ingresos, total_gastos, balance)
+
+                if ingresos_filtrados:
+                    columnas_i = ["ID", "Fecha", "Concepto", "Monto"]
+                    datos_i = [[str(i[0]), i[1], i[2], f"{i[3]:,.2f}"] for i in ingresos_filtrados]
+                    pdf.add_tabla_detalle("Ingresos registrados", datos_i, columnas_i)
+
+                if gastos_filtrados:
+                    columnas_g = ["ID", "Fecha", "Motivo", "Monto"]
+                    datos_g = [[str(g[0]), g[1], g[2], f"{g[3]:,.2f}"] for g in gastos_filtrados]
+                    pdf.add_tabla_detalle("Gastos registrados", datos_g, columnas_g)
+
+                # Guardar PDF en memoria y mostrar para descargar
+                import io
+                pdf_output = io.BytesIO()
+                pdf.output(pdf_output)
+                st.download_button("⬇️ Descargar PDF", data=pdf_output.getvalue(),
+                                   file_name="informe_financiero.pdf", mime="application/pdf")
