@@ -253,25 +253,26 @@ elif opcion == "📊 Reportes":
 
 
 # Botón para exportar el informe en PDF
-        if ingresos_filtrados or gastos_filtrados:
-            st.markdown("### 📄 Exportar informe")
-            if st.button("📄 Exportar informe en PDF"):
-                pdf = PDFReporte()
-                pdf.add_page()
-                pdf.add_leyenda(fecha_inicio, fecha_final)
-                pdf.add_cuadro_resumen(total_ingresos, total_gastos, balance)
+if ingresos_filtrados or gastos_filtrados:
+    st.markdown("### 📄 Exportar informe")
+    if st.button("📄 Exportar informe en PDF"):
+        pdf = PDFReporte()
+        pdf.add_page()
+        pdf.add_leyenda(fecha_inicio, fecha_final)
+        pdf.add_cuadro_resumen(total_ingresos, total_gastos, balance)
 
-                if ingresos_filtrados:
-                    columnas_i = ["ID", "Fecha", "Concepto", "Monto"]
-                    datos_i = [[str(i[0]), i[1], i[2], f"{i[3]:,.2f}"] for i in ingresos_filtrados]
-                    pdf.add_tabla_detalle("Ingresos registrados", datos_i, columnas_i)
+        if ingresos_filtrados:
+            columnas_i = ["Fecha", "Concepto", "Monto"]
+            datos_i = [[i[1], i[2], f"{i[3]:,.2f}"] for i in ingresos_filtrados]
+            pdf.add_tabla_detalle("Ingresos registrados", datos_i, columnas_i)
 
-                if gastos_filtrados:
-                    columnas_g = ["ID", "Fecha", "Motivo", "Monto"]
-                    datos_g = [[str(g[0]), g[1], g[2], f"{g[3]:,.2f}"] for g in gastos_filtrados]
-                    pdf.add_tabla_detalle("Gastos registrados", datos_g, columnas_g)
+        if gastos_filtrados:
+            columnas_g = ["Fecha", "Motivo", "Monto"]
+            datos_g = [[g[1], g[2], f"{g[3]:,.2f}"] for g in gastos_filtrados]
+            pdf.add_tabla_detalle("Gastos registrados", datos_g, columnas_g)
 
-                # Exportar a PDF como bytes usando codificación latina
-                pdf_bytes = pdf.output(dest="S").encode("latin-1")
-                st.download_button("⬇️ Descargar PDF", data=pdf_bytes,
-                                   file_name="informe_financiero.pdf", mime="application/pdf")
+        # Exportar como PDF en memoria codificado correctamente
+        pdf_bytes = pdf.output(dest="S").encode("latin-1")
+        st.download_button("⬇️ Descargar PDF", data=pdf_bytes,
+                           file_name="informe_financiero.pdf", mime="application/pdf")
+
