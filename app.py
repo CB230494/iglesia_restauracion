@@ -251,8 +251,10 @@ elif opcion == "📊 Reportes":
             else:
                 st.info("No hay gastos en este rango.")
 
-        # Botón para exportar
+
+# Botón para exportar el informe en PDF
         if ingresos_filtrados or gastos_filtrados:
+            st.markdown("### 📄 Exportar informe")
             if st.button("📄 Exportar informe en PDF"):
                 pdf = PDFReporte()
                 pdf.add_page()
@@ -269,8 +271,7 @@ elif opcion == "📊 Reportes":
                     datos_g = [[str(g[0]), g[1], g[2], f"{g[3]:,.2f}"] for g in gastos_filtrados]
                     pdf.add_tabla_detalle("Gastos registrados", datos_g, columnas_g)
 
-                import io
-                pdf_output = io.BytesIO()
-                pdf.output(pdf_output)
-                st.download_button("⬇️ Descargar PDF", data=pdf_output.getvalue(),
+                # Exportar a PDF como bytes usando codificación latina
+                pdf_bytes = pdf.output(dest="S").encode("latin-1")
+                st.download_button("⬇️ Descargar PDF", data=pdf_bytes,
                                    file_name="informe_financiero.pdf", mime="application/pdf")
