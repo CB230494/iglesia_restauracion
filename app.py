@@ -50,7 +50,7 @@ if opcion == "📥 Ingresos":
                 if monto > 0:
                     insertar_ingreso(fecha, concepto, monto, observacion)
                     st.success(f"✅ Ingreso registrado correctamente como {concepto}.")
-                    st.experimental_rerun()
+                    st.rerun()
                 else:
                     st.error("❌ El monto debe ser mayor a 0.")
 
@@ -77,7 +77,7 @@ if opcion == "📥 Ingresos":
                 cantidades_list = [int(c) for c in cantidades.strip().splitlines()]
 
                 if len(nombres_list) != len(precios_list) or len(precios_list) != len(cantidades_list):
-                    pass  # Silenciar errores, no mostrar nada
+                    pass  # Silenciado
                 else:
                     total = 0
                     detalle = []
@@ -88,7 +88,7 @@ if opcion == "📥 Ingresos":
                     obs = "\n".join(detalle)
                     insertar_ingreso(fecha, "Cocina", total, obs)
                     st.success(f"✅ Ingreso registrado: Cocina por ₡{total:,.0f} (ej. almuerzo agregado)")
-                    st.experimental_rerun()
+                    st.rerun()
 
     # ====================
     # CRUD INGRESOS
@@ -123,12 +123,12 @@ if opcion == "📥 Ingresos":
             if actualizar:
                 actualizar_ingreso(row[0], fecha_edit, concepto_edit, monto_edit, observacion_edit)
                 st.success("✅ Ingreso actualizado correctamente.")
-                st.experimental_rerun()
+                st.rerun()
 
             if eliminar:
                 eliminar_ingreso(row[0])
                 st.warning("🗑️ Ingreso eliminado.")
-                st.experimental_rerun()
+                st.rerun()
     else:
         st.info("No hay ingresos registrados aún.")
 
@@ -156,7 +156,7 @@ elif opcion == "💸 Gastos":
             if motivo and monto > 0:
                 insertar_gasto(fecha, motivo, monto, observacion)
                 st.success(f"✅ Gasto registrado correctamente: {motivo} por ₡{monto:,.2f}")
-                st.experimental_rerun()
+                st.rerun()
             else:
                 st.error("❌ Todos los campos obligatorios deben estar completos.")
 
@@ -190,15 +190,14 @@ elif opcion == "💸 Gastos":
             if actualizar:
                 actualizar_gasto(row[0], fecha_edit, motivo_edit, monto_edit, observacion_edit)
                 st.success("✅ Gasto actualizado correctamente.")
-                st.experimental_rerun()
+                st.rerun()
 
             if eliminar:
                 eliminar_gasto(row[0])
                 st.warning("🗑️ Gasto eliminado.")
-                st.experimental_rerun()
+                st.rerun()
     else:
         st.info("No hay gastos registrados aún.")
-
 
 # =====================================
 # 📊 REPORTES - IGLESIA RESTAURACIÓN COLONIA CARVAJAL
@@ -254,7 +253,9 @@ elif opcion == "📊 Reportes":
             else:
                 st.info("No hay gastos en este rango.")
 
-        # Exportar PDF (solo si hay datos)
+        # =====================
+        # 📄 Exportar informe en PDF
+        # =====================
         if ingresos_filtrados or gastos_filtrados:
             st.markdown("### 📄 Exportar informe")
             if st.button("📄 Exportar informe en PDF"):
@@ -280,6 +281,7 @@ elif opcion == "📊 Reportes":
                     datos_g = [[g[1], g[2], f"{g[3]:,.2f}"] for g in gastos_filtrados]
                     pdf.add_tabla_detalle("Gastos registrados", datos_g, columnas_g)
 
+                # Generar PDF seguro
                 pdf_bytes = pdf.output(dest="S").encode("latin-1", errors="replace")
                 st.download_button(
                     "⬇️ Descargar PDF",
