@@ -1,6 +1,6 @@
 from fpdf import FPDF
 
-# Función global para limpiar texto
+# Función global para limpiar caracteres no compatibles
 def limpiar_texto(texto):
     if not isinstance(texto, str):
         texto = str(texto)
@@ -14,24 +14,13 @@ class PDFReporte(FPDF):
         self.ln(5)
 
     def add_leyenda(self, fecha_inicio, fecha_final):
+        self.set_fill_color(240, 240, 240)
         self.set_font("Arial", "", 11)
-        self.multi_cell(0, 8, limpiar_texto(
-            "Este informe ha sido solicitado por los pastores Jeannett Loáiciga Segura y Carlos Castro Campos."
-        ))
-        self.ln(3)
-
-        dias = (fecha_final - fecha_inicio).days
-        if dias == 0:
-            tipo = "Informe diario"
-        elif dias <= 15:
-            tipo = "Informe quincenal"
-        else:
-            tipo = "Informe mensual"
-
-        self.set_font("Arial", "I", 10)
-        self.set_text_color(100, 100, 100)
-        self.cell(0, 10, limpiar_texto(f"{tipo} - Rango: {fecha_inicio.strftime('%d/%m/%Y')} al {fecha_final.strftime('%d/%m/%Y')}"), 0, 1)
-        self.set_text_color(0, 0, 0)
+        texto = (
+            f"Este informe ha sido solicitado por los pastores Jeannett Loáiciga Segura y Carlos Castro Campos.\n"
+            f"Fecha del informe: del {fecha_inicio.strftime('%d/%m/%Y')} al {fecha_final.strftime('%d/%m/%Y')}"
+        )
+        self.multi_cell(0, 8, limpiar_texto(texto), border=1, align="L", fill=True)
         self.ln(5)
 
     def add_cuadro_resumen(self, ingresos, gastos, balance):
