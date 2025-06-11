@@ -90,8 +90,7 @@ if opcion == "📥 Ingresos":
                         insertar_ingreso(fecha, "Cocina", total, obs)
                         st.success(f"✅ Ingreso registrado: Cocina por ₡{total:,.0f} (ej. almuerzo agregado)")
                         st.experimental_rerun()
-                except Exception as e:
-                    st.error("❌ Verifica que precios y cantidades sean válidos.")
+
 
     # ====================
     # CRUD INGRESOS
