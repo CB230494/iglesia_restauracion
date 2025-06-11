@@ -6,8 +6,6 @@ DB_PATH = "db.sqlite"
 def get_connection():
     return sqlite3.connect(DB_PATH, check_same_thread=False)
 
-# === CREACIÓN DE TABLAS ===
-
 def init_tables():
     conn = get_connection()
     cursor = conn.cursor()
@@ -39,42 +37,39 @@ def init_tables():
 
 # === FUNCIONES PARA INGRESOS ===
 
-def insertar_ingreso(concepto, monto, observacion=""):
+def insertar_ingreso(fecha_date_obj, concepto, monto, observacion=""):
+    """
+    fecha_date_obj: tipo datetime.date (formato de Streamlit date_input)
+    """
+    fecha_str = fecha_date_obj.strftime("%d/%m/%Y")
     conn = get_connection()
     cursor = conn.cursor()
-    fecha_actual = datetime.now().strftime("%Y-%m-%d")
-    cursor.execute('''
-        INSERT INTO ingresos (fecha, concepto, monto, observacion)
-        VALUES (?, ?, ?, ?)
-    ''', (fecha_actual, concepto, monto, observacion))
+    cursor.execute("INSERT INTO ingresos (fecha, concepto, monto, observacion) VALUES (?, ?, ?, ?)",
+                   (fecha_str, concepto, monto, observacion))
     conn.commit()
     conn.close()
 
 def obtener_ingresos():
     conn = get_connection()
     cursor = conn.cursor()
-    cursor.execute("SELECT * FROM ingresos ORDER BY fecha DESC")
+    cursor.execute("SELECT * FROM ingresos ORDER BY id DESC")
     data = cursor.fetchall()
     conn.close()
     return data
 
-# === FUNCIONES PARA GASTOS ===
-
-def insertar_gasto(motivo, monto, observacion=""):
+def actualizar_ingreso(id, fecha_date_obj, concepto, monto, observacion):
+    fecha_str = fecha_date_obj.strftime("%d/%m/%Y")
     conn = get_connection()
     cursor = conn.cursor()
-    fecha_actual = datetime.now().strftime("%Y-%m-%d")
-    cursor.execute('''
-        INSERT INTO gastos (fecha, motivo, monto, observacion)
-        VALUES (?, ?, ?, ?)
-    ''', (fecha_actual, motivo, monto, observacion))
+    cursor.execute("UPDATE ingresos SET fecha = ?, concepto = ?, monto = ?, observacion = ? WHERE id = ?",
+                   (fecha_str, concepto, monto, observacion, id))
     conn.commit()
     conn.close()
 
-def obtener_gastos():
+def eliminar_ingreso(id):
     conn = get_connection()
     cursor = conn.cursor()
-    cursor.execute("SELECT * FROM gastos ORDER BY fecha DESC")
-    data = cursor.fetchall()
+    cursor.execute("DELETE FROM ingresos WHERE id = ?", (id,))
+    conn.commit()
     conn.close()
-    return data
+
