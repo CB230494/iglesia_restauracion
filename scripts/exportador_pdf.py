@@ -4,7 +4,7 @@ class PDFReporte(FPDF):
     def header(self):
         self.set_font("Arial", "B", 14)
         self.set_fill_color(220, 220, 220)
-        self.cell(0, 10, "📄 Informe Financiero - Iglesia Restauración Colonia Carvajal", 0, 1, "C", fill=True)
+        self.cell(0, 10, "Informe Financiero - Iglesia Restauración Colonia Carvajal", 0, 1, "C", fill=True)
         self.ln(5)
 
     def add_leyenda(self, fecha_inicio, fecha_final):
