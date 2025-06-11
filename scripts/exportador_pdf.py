@@ -8,15 +8,15 @@ class PDFReporte(FPDF):
         self.cell(0, 10, "Informe Financiero - Iglesia Restauracion Colonia Carvajal", 0, 1, "C")
         self.ln(5)
 
-    def add_leyenda(self, fecha_inicio, fecha_final):
-        self.set_font("Helvetica", "", 11)
-        self.set_text_color(50, 50, 50)
-        self.set_fill_color(230, 230, 250)
-        self.multi_cell(0, 8,
-            f"Este informe fue solicitado por los pastores Jeannett Loaiciga Segura y Carlos Castro Campos "
-            f"para el periodo comprendido entre el {fecha_inicio.strftime('%d/%m/%Y')} y el {fecha_final.strftime('%d/%m/%Y')}.",
-            border=1, align="L", fill=True)
-        self.ln(3)
+def add_leyenda(self, fecha_inicio, fecha_final):
+    self.set_font("Helvetica", "", 11)
+    self.set_text_color(50, 50, 50)
+    self.set_fill_color(230, 230, 250)
+    self.multi_cell(0, 8,
+        f"Este informe fue solicitado por los pastores Jeannett Loaiciga Segura y Carlos Castro Campos "
+        f"para el periodo comprendido entre el {fecha_inicio.strftime('%d/%m/%Y')} y el {fecha_final.strftime('%d/%m/%Y')}.",
+        border=1, align="L", fill=True)
+    self.ln(5)
 
         dias = (fecha_final - fecha_inicio).days + 1
         if dias <= 1:
