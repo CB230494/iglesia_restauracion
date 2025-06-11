@@ -256,7 +256,17 @@ elif opcion == "📊 Reportes":
             else:
                 st.info("No hay gastos en este rango.")
 
-   # Exportar PDF
+  # ===============================
+# Función para limpiar caracteres incompatibles
+# ===============================
+def limpiar_texto(texto):
+    if not isinstance(texto, str):
+        texto = str(texto)
+    return texto.encode("latin-1", "replace").decode("latin-1")
+
+# ===============================
+# Exportar informe en PDF
+# ===============================
 if ingresos_filtrados or gastos_filtrados:
     st.markdown("### 📄 Exportar informe")
     if st.button("📄 Exportar informe en PDF"):
@@ -265,7 +275,7 @@ if ingresos_filtrados or gastos_filtrados:
         pdf.add_leyenda(fecha_inicio, fecha_final)
         pdf.add_cuadro_resumen(total_ingresos, total_gastos, balance)
 
-        # Ingresos por concepto
+        # Ingresos agrupados por concepto
         if ingresos_filtrados:
             resumen = {}
             for i in ingresos_filtrados:
