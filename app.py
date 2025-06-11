@@ -226,13 +226,15 @@ elif opcion == "📊 Reportes":
         balance = total_ingresos - total_gastos
 
         st.markdown("### 📋 Resumen financiero")
-        resumen = {
-            "Total de ingresos (₡)": [f"{total_ingresos:,.2f}"],
-            "Total de gastos (₡)": [f"{total_gastos:,.2f}"],
-            "Balance (₡)": [f"{balance:,.2f}"]
-        }
-        df_resumen = pd.DataFrame(resumen)
-        st.dataframe(df_resumen, use_container_width=True)
+        col1, col2, col3 = st.columns(3)
+
+        col1.metric("💰 Total de ingresos", f"₡{total_ingresos:,.2f}")
+        col2.metric("💸 Total de gastos", f"₡{total_gastos:,.2f}")
+
+        if balance >= 0:
+            col3.metric("📈 Balance", f"₡{balance:,.2f}", delta="Ganancia", delta_color="normal")
+        else:
+            col3.metric("📉 Balance", f"₡{balance:,.2f}", delta="Pérdida", delta_color="inverse")
 
         with st.expander("📥 Ver detalle de ingresos"):
             if ingresos_filtrados:
