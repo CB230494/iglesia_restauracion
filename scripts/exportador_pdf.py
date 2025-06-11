@@ -2,28 +2,37 @@ from fpdf import FPDF
 
 class PDFReporte(FPDF):
     def header(self):
-        self.set_font("Helvetica", "B", 16)
-        self.set_text_color(0, 51, 102)
-        self.cell(0, 10, "Informe Financiero - Iglesia Restauracion Colonia Carvajal", 0, 1, "C")
+        self.set_font("Arial", "B", 14)
+        self.set_fill_color(220, 220, 220)
+        self.cell(0, 10, "📄 Informe Financiero - Iglesia Restauración Colonia Carvajal", 0, 1, "C", fill=True)
         self.ln(5)
 
     def add_leyenda(self, fecha_inicio, fecha_final):
-        self.set_font("Helvetica", "", 11)
-        self.set_text_color(50, 50, 50)
-        self.set_fill_color(230, 230, 250)
-        self.multi_cell(0, 8,
-            f"Este informe fue solicitado por los pastores Jeannett Loaiciga Segura y Carlos Castro Campos "
-            f"para el periodo comprendido entre el {fecha_inicio.strftime('%d/%m/%Y')} y el {fecha_final.strftime('%d/%m/%Y')}.",
-            border=1, align="L", fill=True)
+        self.set_font("Arial", "", 11)
+        self.multi_cell(0, 8, "Este informe ha sido solicitado por los pastores Jeannett Loáiciga Segura y Carlos Castro Campos.")
+        self.ln(3)
+
+        dias = (fecha_final - fecha_inicio).days
+        if dias == 0:
+            tipo = "Informe diario"
+        elif dias <= 15:
+            tipo = "Informe quincenal"
+        else:
+            tipo = "Informe mensual"
+
+        self.set_font("Arial", "I", 10)
+        self.set_text_color(100, 100, 100)
+        self.cell(0, 10, f"{tipo} - Rango: {fecha_inicio.strftime('%d/%m/%Y')} al {fecha_final.strftime('%d/%m/%Y')}", 0, 1)
+        self.set_text_color(0, 0, 0)
         self.ln(5)
 
     def add_cuadro_resumen(self, ingresos, gastos, balance):
-        self.set_font("Helvetica", "B", 12)
+        self.set_font("Arial", "B", 12)
         self.set_fill_color(200, 220, 255)
-        self.cell(60, 10, "Categoria", 1, 0, "C", True)
-        self.cell(60, 10, "Monto (colones)", 1, 1, "C", True)
+        self.cell(60, 10, "Categoría", 1, 0, "C", True)
+        self.cell(60, 10, "Monto (₡)", 1, 1, "C", True)
 
-        self.set_font("Helvetica", "", 11)
+        self.set_font("Arial", "", 11)
         self.cell(60, 10, "Total de ingresos", 1)
         self.cell(60, 10, f"{ingresos:,.2f}", 1, 1)
 
@@ -41,22 +50,21 @@ class PDFReporte(FPDF):
         self.ln(5)
 
     def add_tabla_detalle(self, titulo, data, columnas):
-        self.set_font("Helvetica", "B", 12)
+        self.set_font("Arial", "B", 12)
+        self.cell(0, 10, titulo, 0, 1, "L")
         self.set_fill_color(240, 240, 240)
-        self.cell(0, 8, titulo, 0, 1, "L", False)
 
-        self.set_font("Helvetica", "B", 10)
+        self.set_font("Arial", "B", 10)
+        col_width = 190 // len(columnas)
         for col in columnas:
-            self.cell(45, 8, col, 1, 0, "C", True)
+            self.cell(col_width, 8, col, 1, 0, "C", True)
         self.ln()
 
-        self.set_font("Helvetica", "", 9)
+        self.set_font("Arial", "", 10)
         for row in data:
-            for i, col in enumerate(columnas):
-                texto = str(row[i]) if i < len(row) else ""
-                self.cell(45, 7, texto[:30], 1)
+            for item in row:
+                self.cell(col_width, 8, str(item), 1)
             self.ln()
         self.ln(4)
-
 
 
