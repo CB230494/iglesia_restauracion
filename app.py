@@ -197,3 +197,53 @@ elif opcion == "💸 Gastos":
                 st.rerun()
     else:
         st.info("No hay gastos registrados aún.")
+
+elif opcion == "📊 Reportes":
+    st.title("📊 Reporte financiero - Iglesia Restauración Colonia Carvajal")
+
+    st.markdown("### Seleccione el rango de fechas")
+    col1, col2 = st.columns(2)
+    with col1:
+        fecha_inicio = st.date_input("Fecha inicial", value=date.today())
+    with col2:
+        fecha_final = st.date_input("Fecha final", value=date.today())
+
+    if fecha_inicio > fecha_final:
+        st.error("❌ La fecha inicial no puede ser posterior a la fecha final.")
+    else:
+        ingresos_filtrados = [
+            i for i in obtener_ingresos()
+            if fecha_inicio <= pd.to_datetime(i[1], dayfirst=True).date() <= fecha_final
+        ]
+
+        gastos_filtrados = [
+            g for g in obtener_gastos()
+            if fecha_inicio <= pd.to_datetime(g[1], dayfirst=True).date() <= fecha_final
+        ]
+
+        total_ingresos = sum(i[3] for i in ingresos_filtrados)
+        total_gastos = sum(g[3] for g in gastos_filtrados)
+        balance = total_ingresos - total_gastos
+
+        st.markdown("### 📋 Resumen financiero")
+        resumen = {
+            "Total de ingresos (₡)": [f"{total_ingresos:,.2f}"],
+            "Total de gastos (₡)": [f"{total_gastos:,.2f}"],
+            "Balance (₡)": [f"{balance:,.2f}"]
+        }
+        df_resumen = pd.DataFrame(resumen)
+        st.dataframe(df_resumen, use_container_width=True)
+
+        with st.expander("📥 Ver detalle de ingresos"):
+            if ingresos_filtrados:
+                df_i = pd.DataFrame(ingresos_filtrados, columns=["ID", "Fecha", "Concepto", "Monto", "Observación"])
+                st.dataframe(df_i, use_container_width=True)
+            else:
+                st.info("No hay ingresos en este rango.")
+
+        with st.expander("💸 Ver detalle de gastos"):
+            if gastos_filtrados:
+                df_g = pd.DataFrame(gastos_filtrados, columns=["ID", "Fecha", "Motivo", "Monto", "Observación"])
+                st.dataframe(df_g, use_container_width=True)
+            else:
+                st.info("No hay gastos en este rango.")
