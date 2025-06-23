@@ -2,11 +2,12 @@ from supabase_client import supabase
 
 def insertar_gasto(fecha, concepto, monto, observacion=""):
     data = {
-        "fecha": fecha,
+        "fecha": fecha,  # debe ser datetime.date
         "concepto": concepto,
         "monto": monto,
         "observacion": observacion
     }
+    print("📤 Insertando en gastos:", data)  # Opcional para depuración
     response = supabase.table("gastos").insert(data).execute()
     return response
 
