@@ -236,27 +236,27 @@ elif menu == "📊 Reporte General":
             df_ingresos = df_ingresos[(df_ingresos["fecha"] >= fecha_inicio) & (df_ingresos["fecha"] <= fecha_fin)]
             df_ingresos["fecha"] = df_ingresos["fecha"].apply(lambda x: x.strftime("%d/%m/%Y"))
             df_ingresos["monto"] = df_ingresos["monto"].apply(lambda x: f"₡{x:,.2f}".replace(",", "X").replace(".", ",").replace("X", "."))
+            df_ingresos["observacion"] = df_ingresos["observacion"].fillna("")
 
         if not df_gastos.empty:
             df_gastos["fecha"] = pd.to_datetime(df_gastos["fecha"]).dt.date
             df_gastos = df_gastos[(df_gastos["fecha"] >= fecha_inicio) & (df_gastos["fecha"] <= fecha_fin)]
             df_gastos["fecha"] = df_gastos["fecha"].apply(lambda x: x.strftime("%d/%m/%Y"))
             df_gastos["monto"] = df_gastos["monto"].apply(lambda x: f"₡{x:,.2f}".replace(",", "X").replace(".", ",").replace("X", "."))
+            df_gastos["observacion"] = df_gastos["observacion"].fillna("")
 
-        # Mostrar tablas
         st.subheader("💰 Ingresos en el período")
         st.dataframe(df_ingresos, use_container_width=True)
 
         st.subheader("💸 Gastos en el período")
         st.dataframe(df_gastos, use_container_width=True)
 
-        # Cálculo numérico del balance
+        # Cálculo del resumen
         total_ingresos = sum([i["monto"] for i in ingresos if fecha_inicio <= pd.to_datetime(i["fecha"]).date() <= fecha_fin])
         total_gastos = sum([i["monto"] for i in gastos if fecha_inicio <= pd.to_datetime(i["fecha"]).date() <= fecha_fin])
         balance_final = total_ingresos - total_gastos
         color = "green" if balance_final >= 0 else "red"
 
-        # Mostrar resumen
         st.markdown("---")
         st.markdown("### 🪙 Resumen del período seleccionado:")
         st.markdown(f"**Total de ingresos:** ₡{total_ingresos:,.2f}".replace(",", "X").replace(".", ",").replace("X", "."))
@@ -269,6 +269,7 @@ elif menu == "📊 Reporte General":
 
     except Exception as e:
         st.error("⚠️ Error al obtener o procesar los datos. Verifica la conexión con Supabase o el formato de datos.")
+
 
 
 
