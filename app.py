@@ -5,7 +5,7 @@ st.set_page_config(page_title="Registro de Ingresos", layout="centered")
 
 st.title("📥 Registro de Ingresos - Iglesia Restauración")
 
-# Formulario para agregar ingreso
+# Formulario para ingresar un nuevo ingreso
 st.subheader("Agregar nuevo ingreso")
 with st.form("formulario_ingreso"):
     fecha = st.date_input("Fecha")
@@ -16,19 +16,18 @@ with st.form("formulario_ingreso"):
 
     if enviar:
         resultado = insertar_ingreso(str(fecha), concepto, monto, observacion)
-        if resultado.status_code == 201:
+        if resultado.data:
             st.success("✅ Ingreso registrado exitosamente")
+            st.experimental_rerun()
         else:
-            st.error(f"❌ Error al registrar: {resultado}")
-        st.experimental_rerun()
+            st.error(f"❌ Error al registrar: {resultado.error}")
 
-# Visualización de ingresos
+# Mostrar los ingresos registrados
 st.subheader("📋 Ingresos registrados")
 datos = obtener_ingresos()
 if datos:
     st.table(datos)
 else:
     st.info("No hay ingresos registrados todavía.")
-
 
 
