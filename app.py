@@ -118,8 +118,9 @@ elif menu == "💸 Registro de Gastos":
 
     st.title("💸 Registro de Gastos")
 
-    # ---------- FORMULARIO PARA NUEVO GASTO ----------
+    # ---------- SUBTÍTULO: FORMULARIO PARA NUEVO GASTO ----------
     st.subheader("Registrar nuevo gasto")
+
     with st.form("form_nuevo_gasto"):
         nueva_fecha = st.date_input("Fecha del gasto")
         nuevo_concepto = st.text_input("Concepto del gasto")
@@ -135,7 +136,7 @@ elif menu == "💸 Registro de Gastos":
             else:
                 st.error(f"❌ Error al registrar: {resultado.error}")
 
-    # ---------- LISTADO DE GASTOS + DESCARGA ----------
+    # ---------- SUBTÍTULO: LISTADO DE GASTOS ----------
     st.subheader("📋 Gastos registrados")
     gastos = obtener_gastos()
 
@@ -155,7 +156,7 @@ elif menu == "💸 Registro de Gastos":
             mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
         )
 
-        # ---------- MOSTRAR LISTA CON EDICIÓN EN LÍNEA ----------
+        # ---------- TABLA CON EDICIÓN Y ELIMINACIÓN ----------
         for gasto in gastos:
             with st.container():
                 id_actual = gasto['id']
@@ -195,6 +196,7 @@ elif menu == "💸 Registro de Gastos":
                         st.rerun()
     else:
         st.info("No hay gastos registrados.")
+
 
 # -------------------- OTRAS PESTAÑAS EN CONSTRUCCIÓN --------------------
 
