@@ -1,7 +1,7 @@
 import streamlit as st
 import pandas as pd
 from datetime import date
-from scripts.db_ingresos import (
+from db_ingresos import (
     init_tables,
     insertar_ingreso,
     obtener_ingresos,
@@ -12,7 +12,7 @@ from scripts.db_ingresos import (
     actualizar_gasto,
     eliminar_gasto
 )
-from scripts.exportador_pdf import PDFReporte
+from exportador_pdf import PDFReporte
 
 
 
