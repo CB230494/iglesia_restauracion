@@ -11,7 +11,7 @@ def insertar_ingreso(fecha, concepto, monto, observacion=""):
     return response
 
 def obtener_ingresos():
-    response = supabase.table("ingresos").select("*").execute()
+    response = supabase.table("ingresos").select("*").order("id", desc=True).execute()
     return response.data
 
 def eliminar_ingreso(id):
@@ -27,7 +27,7 @@ def actualizar_ingreso(id, fecha, concepto, monto, observacion=""):
     }
     response = supabase.table("ingresos").update(data).eq("id", id).execute()
     return response
-
+from supabase_client import supabase
 
 def insertar_gasto(fecha, concepto, monto, observacion=""):
     data = {
@@ -56,5 +56,4 @@ def actualizar_gasto(id, fecha, concepto, monto, observacion=""):
     }
     response = supabase.table("gastos").update(data).eq("id", id).execute()
     return response
-
 
