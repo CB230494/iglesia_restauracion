@@ -292,23 +292,14 @@ elif menu == "📄 Exportar PDF":
 
     if st.button("📥 Generar PDF"):
         try:
-            # Convertir datos a DataFrame
             df_ingresos = pd.DataFrame(obtener_ingresos())
             df_gastos = pd.DataFrame(obtener_gastos())
-
-            # Validar columnas mínimas requeridas
-            columnas_minimas = ['fecha', 'tipo', 'monto']
-            for col in columnas_minimas:
-                if col not in df_ingresos.columns:
-                    df_ingresos[col] = ''
-                if col not in df_gastos.columns:
-                    df_gastos[col] = ''
 
             # Convertir fechas
             df_ingresos['fecha'] = pd.to_datetime(df_ingresos['fecha'], errors='coerce')
             df_gastos['fecha'] = pd.to_datetime(df_gastos['fecha'], errors='coerce')
 
-            # Filtrar por fechas
+            # Filtrar fechas
             ingresos_filtrados = df_ingresos[
                 (df_ingresos['fecha'] >= pd.to_datetime(fecha_inicio)) &
                 (df_ingresos['fecha'] <= pd.to_datetime(fecha_fin))
@@ -336,7 +327,7 @@ elif menu == "📄 Exportar PDF":
             if not ingresos_filtrados.empty:
                 for _, row in ingresos_filtrados.iterrows():
                     texto = f"{row.get('fecha', ''):%Y-%m-%d} | {row.get('tipo', 'N/A')} | ₡{row.get('monto', 0):,.2f}"
-                    if pd.notna(row.get('detalle', '')):
+                    if 'detalle' in row and pd.notna(row['detalle']):
                         texto += f" | {row['detalle']}"
                     pdf.multi_cell(0, 8, texto)
             else:
@@ -351,7 +342,7 @@ elif menu == "📄 Exportar PDF":
             if not gastos_filtrados.empty:
                 for _, row in gastos_filtrados.iterrows():
                     texto = f"{row.get('fecha', ''):%Y-%m-%d} | {row.get('tipo', 'N/A')} | ₡{row.get('monto', 0):,.2f}"
-                    if pd.notna(row.get('detalle', '')):
+                    if 'detalle' in row and pd.notna(row['detalle']):
                         texto += f" | {row['detalle']}"
                     pdf.multi_cell(0, 8, texto)
             else:
@@ -375,7 +366,6 @@ elif menu == "📄 Exportar PDF":
             pdf.set_font("Arial", style='I', size=8)
             pdf.cell(0, 10, "Página 1 - Sistema Iglesia Restauración", ln=True, align="C")
 
-            # Mostrar PDF
             pdf_bytes = pdf.output(dest='S').encode('latin1')
             st.download_button(
                 label="📄 Descargar Informe PDF",
@@ -386,6 +376,7 @@ elif menu == "📄 Exportar PDF":
 
         except Exception as e:
             st.error(f"❌ Error al generar el PDF: {e}")
+
 
 
 
