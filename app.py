@@ -274,50 +274,50 @@ elif menu == "📊 Reporte General":
 
 # -------------------- PESTAÑA: Generador de PDF --------------------
 elif menu == "📄 Exportar PDF":
-    st.markdown("## 📄 Exportar PDF del Informe Financiero")
-    st.markdown("Genera un PDF con el resumen de ingresos y gastos para un período seleccionado.")
+    st.markdown("## 🧾 Exportar PDF del Informe Financiero")
+    st.write("Genera un PDF con el resumen de ingresos y gastos para un período seleccionado.")
 
     col1, col2 = st.columns(2)
-    with col1:
-        fecha_inicio = st.date_input("📅 Fecha de inicio", value=datetime(2025, 1, 1))
-    with col2:
-        fecha_fin = st.date_input("📅 Fecha de fin", value=datetime(2025, 6, 30))
+    fecha_inicio = col1.date_input("📅 Fecha de inicio", value=datetime(2025, 1, 1).date())
+    fecha_fin = col2.date_input("📅 Fecha de fin", value=datetime.now().date())
 
-    if st.button("📥 Generar PDF"):
+    if st.button("📤 Generar PDF"):
         try:
-            # Convertimos a pandas datetime64 para evitar errores de comparación
-            fecha_inicio = pd.to_datetime(fecha_inicio)
-            fecha_fin = pd.to_datetime(fecha_fin)
+            df_ingresos = obtener_ingresos()
+            df_gastos = obtener_gastos()
 
-            ingresos = obtener_ingresos()
-            gastos = obtener_gastos()
+            df_ingresos["fecha"] = pd.to_datetime(df_ingresos["fecha"])
+            df_gastos["fecha"] = pd.to_datetime(df_gastos["fecha"])
 
-            ingresos_filtrados = ingresos[
-                (ingresos["fecha"] >= fecha_inicio) & (ingresos["fecha"] <= fecha_fin)
-            ]
-            gastos_filtrados = gastos[
-                (gastos["fecha"] >= fecha_inicio) & (gastos["fecha"] <= fecha_fin)
+            ingresos_filtrados = df_ingresos[
+                (df_ingresos["fecha"] >= pd.to_datetime(fecha_inicio)) &
+                (df_ingresos["fecha"] <= pd.to_datetime(fecha_fin))
             ]
 
-            from exportador_pdf import PDF
+            gastos_filtrados = df_gastos[
+                (df_gastos["fecha"] >= pd.to_datetime(fecha_inicio)) &
+                (df_gastos["fecha"] <= pd.to_datetime(fecha_fin))
+            ]
+
             pdf = PDF()
-            pdf.generate_report(
-                ingresos_filtrados,
-                gastos_filtrados,
-                fecha_inicio,
-                fecha_fin
+            pdf.add_page()
+            pdf.add_legend("Jeannett Loaiciga Segura y Carlos Castro Campos", fecha_inicio.strftime('%Y-%m-%d'), fecha_fin.strftime('%Y-%m-%d'))
+            pdf.add_table("Ingresos", ingresos_filtrados)
+            pdf.add_table("Gastos", gastos_filtrados)
+
+            buffer = io.BytesIO()
+            pdf.output(buffer)
+            buffer.seek(0)
+
+            st.download_button(
+                label="📥 Descargar Informe PDF",
+                data=buffer,
+                file_name="informe_financiero.pdf",
+                mime="application/pdf"
             )
 
-            with open("informe_financiero.pdf", "rb") as f:
-                st.download_button(
-                    label="📄 Descargar PDF",
-                    data=f,
-                    file_name="informe_financiero.pdf",
-                    mime="application/pdf"
-                )
-
         except Exception as e:
-            st.error(f"❌ Error al generar el PDF: {str(e)}")
+            st.error(f"❌ Error al generar el PDF: {e}")
 
 
 
