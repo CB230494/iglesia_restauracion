@@ -1,10 +1,18 @@
 import streamlit as st
 import pandas as pd
-from db_ingresos import insertar_ingreso, obtener_ingresos
+import io
+from openpyxl import Workbook
+
+from db_ingresos import (
+    insertar_ingreso,
+    obtener_ingresos,
+    eliminar_ingreso,
+    actualizar_ingreso
+)
 
 st.set_page_config(page_title="Sistema Iglesia Restauración", layout="centered")
 
-# MENÚ SUPERIOR
+# -------------------- MENÚ DE PESTAÑAS --------------------
 menu = st.selectbox(
     "Selecciona una sección",
     [
@@ -16,15 +24,12 @@ menu = st.selectbox(
     ]
 )
 
-# =================== PESTAÑA 1: REGISTRO DE INGRESOS =================== #
-from db_ingresos import insertar_ingreso, obtener_ingresos, eliminar_ingreso, actualizar_ingreso
-
+# -------------------- PESTAÑA: INGRESOS --------------------
 if menu == "📥 Registro de Ingresos":
     st.title("📥 Registro de Ingresos")
 
-    # ------------------------ FORMULARIO PARA NUEVO INGRESO ------------------------
+    # ---------- FORMULARIO PARA NUEVO INGRESO ----------
     st.subheader("Agregar nuevo ingreso")
-
     with st.form("form_nuevo_ingreso"):
         nueva_fecha = st.date_input("Fecha")
         nuevo_concepto = st.selectbox("Concepto", ["Diezmo", "Ofrenda", "Cocina", "Otro"])
@@ -40,11 +45,26 @@ if menu == "📥 Registro de Ingresos":
             else:
                 st.error(f"❌ Error al registrar: {resultado.error}")
 
-    # ------------------------ LISTADO CON EDICIÓN Y ELIMINACIÓN ------------------------
+    # ---------- LISTADO DE INGRESOS + BOTÓN DE DESCARGA ----------
     st.subheader("📋 Ingresos registrados")
     ingresos = obtener_ingresos()
 
     if ingresos:
+        df = pd.DataFrame(ingresos)
+        df["monto"] = df["monto"].map(lambda x: round(x, 2))
+
+        output = io.BytesIO()
+        with pd.ExcelWriter(output, engine='openpyxl') as writer:
+            df.to_excel(writer, index=False, sheet_name="Ingresos")
+
+        st.download_button(
+            label="⬇️ Descargar respaldo en Excel",
+            data=output.getvalue(),
+            file_name="respaldo_ingresos.xlsx",
+            mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+        )
+
+        # ---------- MOSTRAR LISTA CON EDICIÓN EN LÍNEA ----------
         for ingreso in ingresos:
             with st.container():
                 id_actual = ingreso['id']
@@ -86,28 +106,22 @@ if menu == "📥 Registro de Ingresos":
     else:
         st.info("No hay ingresos registrados.")
 
-
-
-
-# =================== PESTAÑA 2: REGISTRO DE GASTOS =================== #
+# -------------------- OTRAS PESTAÑAS EN CONSTRUCCIÓN --------------------
 elif menu == "💸 Registro de Gastos":
     st.title("💸 Registro de Gastos")
-    st.warning("En construcción...")
+    st.warning("Esta sección está en construcción.")
 
-# =================== PESTAÑA 3: REPORTE GENERAL =================== #
 elif menu == "📊 Reporte General":
     st.title("📊 Reporte General")
-    st.warning("En construcción...")
+    st.warning("Esta sección está en construcción.")
 
-# =================== PESTAÑA 4: EXPORTAR PDF =================== #
 elif menu == "📄 Exportar PDF":
     st.title("📄 Exportar reporte en PDF")
-    st.warning("En construcción...")
+    st.warning("Esta sección está en construcción.")
 
-# =================== PESTAÑA 5: CONFIGURACIÓN =================== #
 elif menu == "⚙️ Configuración":
     st.title("⚙️ Configuración del sistema")
-    st.warning("En construcción...")
+    st.warning("Esta sección está en construcción.")
 
 
 
