@@ -1,49 +1,53 @@
 from fpdf import FPDF
-import datetime
+from datetime import datetime
 
 class PDF(FPDF):
     def header(self):
-        self.set_font("Arial", "B", 16)
-        self.set_text_color(0, 102, 204)  # Azul
-        self.cell(0, 10, "Informe Financiero - Iglesia Restauración", ln=True, align="C")
-        self.ln(10)
-
-    def footer(self):
-        self.set_y(-15)
-        self.set_font("Arial", "I", 8)
-        self.set_text_color(128)
-        page = "Página %s" % self.page_no()
-        self.cell(0, 10, page, align="C")
-
-    def add_legend(self, nombre_pastores, fecha_inicio, fecha_fin):
-        self.set_font("Arial", "", 12)
-        self.set_text_color(0)
-        texto = f"Este informe fue solicitado por los pastores {nombre_pastores}. "
-        texto += f"Corresponde al periodo del {fecha_inicio} al {fecha_fin}."
-        self.multi_cell(0, 10, texto)
+        # Encabezado del PDF
+        self.set_font("Helvetica", "B", 14)
+        self.set_text_color(0, 51, 102)  # Azul oscuro
+        self.cell(0, 10, "Informe Financiero", ln=True, align="C")
         self.ln(5)
 
-    def add_table(self, title, data):
-        self.set_font("Arial", "B", 12)
-        self.set_fill_color(255, 102, 0)  # Naranja
-        self.set_text_color(255)
-        self.cell(0, 10, title, ln=True, fill=True)
-        self.set_text_color(0)
+    def footer(self):
+        # Pie de página
+        self.set_y(-15)
+        self.set_font("Helvetica", "I", 8)
+        self.set_text_color(128)
+        self.cell(0, 10, f'Página {self.page_no()}', align="C")
 
-        if not data.empty:
-            self.set_font("Arial", "B", 10)
-            for col in data.columns:
-                self.cell(40, 8, str(col), border=1)
+    def add_legend(self, fecha_inicio, fecha_fin):
+        # Leyenda solicitada al principio del PDF
+        self.set_text_color(255, 102, 0)  # Naranja
+        self.set_font("Helvetica", "", 11)
+        self.multi_cell(0, 8, f"Este informe fue solicitado por los pastores Jeannett Loaiciga Segura y Carlos Castro Campos.\nPeríodo del informe: {fecha_inicio} al {fecha_fin}", align="L")
+        self.ln(5)
+
+    def add_section_title(self, title):
+        self.set_font("Helvetica", "B", 12)
+        self.set_text_color(0)
+        self.cell(0, 8, title, ln=True)
+        self.ln(2)
+
+    def add_table(self, df):
+        self.set_font("Helvetica", "", 10)
+        self.set_fill_color(200, 220, 255)
+        col_widths = [40, 80, 30]  # Ajusta según columnas
+
+        # Encabezado
+        for i, col in enumerate(df.columns):
+            self.cell(col_widths[i], 8, str(col), border=1, fill=True)
+        self.ln()
+
+        # Filas
+        for _, row in df.iterrows():
+            for i, col in enumerate(df.columns):
+                texto = str(row[col])
+                # Elimina símbolos no soportados
+                texto = texto.encode('latin-1', 'ignore').decode('latin-1')
+                self.cell(col_widths[i], 8, texto, border=1)
             self.ln()
 
-            self.set_font("Arial", "", 10)
-            for _, row in data.iterrows():
-                for item in row:
-                    self.cell(40, 8, str(item), border=1)
-                self.ln()
-        else:
-            self.set_font("Arial", "I", 10)
-            self.cell(0, 10, "No hay datos disponibles.", ln=True)
         self.ln(5)
 
 
