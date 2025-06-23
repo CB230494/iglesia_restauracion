@@ -10,6 +10,14 @@ from db_ingresos import (
     actualizar_ingreso
 )
 
+from db_gastos import (
+    insertar_gasto,
+    obtener_gastos,
+    eliminar_gasto,
+    actualizar_gasto
+)
+
+
 st.set_page_config(page_title="Sistema Iglesia Restauración", layout="centered")
 
 # -------------------- MENÚ DE PESTAÑAS --------------------
