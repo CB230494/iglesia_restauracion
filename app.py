@@ -299,6 +299,7 @@ elif menu == "📄 Exportar PDF":
             total_ingresos = ingresos_filtrados["monto"].sum()
             total_gastos = gastos_filtrados["monto"].sum()
 
+            from exportador_pdf import PDF
             pdf = PDF()
             pdf.add_page()
             pdf.add_legend(fecha_inicio, fecha_fin)
