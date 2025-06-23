@@ -17,35 +17,77 @@ menu = st.selectbox(
 )
 
 # =================== PESTAÑA 1: REGISTRO DE INGRESOS =================== #
+from db_ingresos import insertar_ingreso, obtener_ingresos, eliminar_ingreso, actualizar_ingreso
+
 if menu == "📥 Registro de Ingresos":
     st.title("📥 Registro de Ingresos")
 
-    st.subheader("Agregar nuevo ingreso")
+    # ================= FORMULARIO DE AGREGAR O EDITAR =================
+    st.subheader("Agregar / Editar ingreso")
+
+    if "modo_edicion" not in st.session_state:
+        st.session_state.modo_edicion = False
+    if "datos_edicion" not in st.session_state:
+        st.session_state.datos_edicion = {}
+
+    if st.session_state.modo_edicion:
+        datos = st.session_state.datos_edicion
+        st.info(f"✏️ Editando ingreso ID {datos['id']}")
+    else:
+        datos = {"fecha": None, "concepto": "Diezmo", "monto": 0.0, "observacion": ""}
+
     with st.form("formulario_ingreso"):
-        fecha = st.date_input("Fecha")
-        concepto = st.selectbox("Concepto", ["Diezmo", "Ofrenda", "Cocina", "Otro"])
-        monto = st.number_input("Monto (₡)", min_value=0.0, step=1000.0, format="%.2f")
-        observacion = st.text_area("Observación (opcional)")
-        enviar = st.form_submit_button("Registrar")
+        fecha = st.date_input("Fecha", value=pd.to_datetime(datos["fecha"]) if datos["fecha"] else pd.to_datetime("today"))
+        concepto = st.selectbox("Concepto", ["Diezmo", "Ofrenda", "Cocina", "Otro"], index=["Diezmo", "Ofrenda", "Cocina", "Otro"].index(datos["concepto"]) if datos["concepto"] else 0)
+        monto = st.number_input("Monto (₡)", min_value=0.0, value=float(datos["monto"]), step=1000.0, format="%.2f")
+        observacion = st.text_area("Observación (opcional)", value=datos["observacion"])
+        enviar = st.form_submit_button("Guardar")
 
         if enviar:
-            resultado = insertar_ingreso(str(fecha), concepto, monto, observacion)
-            if resultado.data:
-                st.success("✅ Ingreso registrado exitosamente")
+            if st.session_state.modo_edicion:
+                resultado = actualizar_ingreso(datos["id"], str(fecha), concepto, monto, observacion)
+                if resultado.data:
+                    st.success("✅ Ingreso actualizado")
+                else:
+                    st.error("❌ Error al actualizar")
+                st.session_state.modo_edicion = False
+                st.session_state.datos_edicion = {}
                 st.experimental_rerun()
             else:
-                st.error(f"❌ Error al registrar: {resultado.error}")
+                resultado = insertar_ingreso(str(fecha), concepto, monto, observacion)
+                if resultado.data:
+                    st.success("✅ Ingreso registrado")
+                    st.experimental_rerun()
+                else:
+                    st.error("❌ Error al registrar")
 
+    # ================= TABLA CON OPCIONES DE EDITAR Y ELIMINAR =================
     st.subheader("📋 Ingresos registrados")
-    datos = obtener_ingresos()
+    ingresos = obtener_ingresos()
 
-    if datos:
-        df = pd.DataFrame(datos)
-        if "monto" in df.columns:
-            df["monto"] = df["monto"].map(lambda x: f"₡{x:,.2f}")
-        st.table(df)
+    if ingresos:
+        for ingreso in ingresos:
+            col1, col2, col3, col4, col5, col6 = st.columns([1, 2, 2, 2, 2, 1])
+            col1.write(f"ID: {ingreso['id']}")
+            col2.write(ingreso["fecha"])
+            col3.write(ingreso["concepto"])
+            col4.write(f"₡{ingreso['monto']:,.2f}")
+            col5.write(ingreso["observacion"] or "")
+            editar = col6.button("✏️", key=f"editar_{ingreso['id']}")
+            eliminar = col6.button("🗑️", key=f"eliminar_{ingreso['id']}")
+
+            if editar:
+                st.session_state.modo_edicion = True
+                st.session_state.datos_edicion = ingreso
+                st.experimental_rerun()
+
+            if eliminar:
+                eliminar_ingreso(ingreso["id"])
+                st.success(f"✅ Ingreso ID {ingreso['id']} eliminado")
+                st.experimental_rerun()
     else:
-        st.info("No hay ingresos registrados todavía.")
+        st.info("No hay ingresos registrados.")
+
 
 # =================== PESTAÑA 2: REGISTRO DE GASTOS =================== #
 elif menu == "💸 Registro de Gastos":
