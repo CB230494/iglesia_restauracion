@@ -2,12 +2,11 @@ from supabase_client import supabase
 
 def insertar_gasto(fecha, concepto, monto, observacion=""):
     data = {
-        "fecha": fecha,  # debe ser datetime.date
+        "fecha": fecha.isoformat(),  # ✅ Convertir datetime.date a string 'YYYY-MM-DD'
         "concepto": concepto,
         "monto": monto,
         "observacion": observacion
     }
-    print("📤 Insertando en gastos:", data)  # Opcional para depuración
     response = supabase.table("gastos").insert(data).execute()
     return response
 
@@ -21,7 +20,7 @@ def eliminar_gasto(id):
 
 def actualizar_gasto(id, fecha, concepto, monto, observacion=""):
     data = {
-        "fecha": fecha,
+        "fecha": fecha.isoformat(),  # ✅ También aquí
         "concepto": concepto,
         "monto": monto,
         "observacion": observacion
