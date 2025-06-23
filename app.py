@@ -29,6 +29,12 @@ if menu == "📥 Registro de Ingresos":
     st.title("📥 Registro de Ingresos")
 
     # ---------- FORMULARIO PARA NUEVO INGRESO ----------
+   from db_ingresos import insertar_ingreso, obtener_ingresos, eliminar_ingreso, actualizar_ingreso
+
+if menu == "📥 Registro de Ingresos":
+    st.title("📥 Registro de Ingresos")
+
+    # ---------- FORMULARIO PARA NUEVO INGRESO ----------
     st.subheader("Agregar nuevo ingreso")
     with st.form("form_nuevo_ingreso"):
         nueva_fecha = st.date_input("Fecha")
@@ -64,7 +70,6 @@ if menu == "📥 Registro de Ingresos":
             mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
         )
 
-        # ---------- MOSTRAR LISTA CON EDICIÓN EN LÍNEA ----------
         for ingreso in ingresos:
             with st.container():
                 id_actual = ingreso['id']
@@ -90,9 +95,10 @@ if menu == "📥 Registro de Ingresos":
                         st.rerun()
 
                 else:
+                    fecha_formateada = pd.to_datetime(ingreso['fecha']).strftime("%d/%m/%Y")
                     cols = st.columns([1, 2, 2, 2, 3, 1, 1])
                     cols[0].markdown(f"**ID:** {ingreso['id']}")
-                    cols[1].markdown(f"📅 {ingreso['fecha']}")
+                    cols[1].markdown(f"📅 {fecha_formateada}")
                     cols[2].markdown(f"📄 {ingreso['concepto']}")
                     cols[3].markdown(f"💰 ₡{ingreso['monto']:,.2f}")
                     cols[4].markdown(f"📝 {ingreso['observacion'] or '—'}")
@@ -105,6 +111,7 @@ if menu == "📥 Registro de Ingresos":
                         st.rerun()
     else:
         st.info("No hay ingresos registrados.")
+
 
 # -------------------- OTRAS PESTAÑAS EN CONSTRUCCIÓN --------------------
 elif menu == "💸 Registro de Gastos":
