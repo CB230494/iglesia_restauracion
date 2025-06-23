@@ -218,54 +218,58 @@ elif menu == "📊 Reporte General":
     st.title("📊 REPORTE GENERAL")
     st.markdown("Resumen financiero entre ingresos y gastos registrados, con filtro por rango de fechas.")
 
-    # Filtros de fecha
     col1, col2 = st.columns(2)
     with col1:
-        fecha_inicio = st.date_input("📅 Fecha de inicio", pd.to_datetime("2025-01-01"))
+        fecha_inicio = st.date_input("📅 Fecha de inicio", pd.to_datetime("2025-01-01").date())
     with col2:
-        fecha_fin = st.date_input("📅 Fecha de fin", pd.to_datetime("today"))
+        fecha_fin = st.date_input("📅 Fecha de fin", pd.to_datetime("today").date())
 
-    # Convertir fechas de filtro a datetime64
-    fecha_inicio = pd.to_datetime(fecha_inicio)
-    fecha_fin = pd.to_datetime(fecha_fin)
-
-    # Obtener datos
+    # Obtener y convertir datos
     ingresos = obtener_ingresos()
     gastos = obtener_gastos()
 
-    # Convertir a DataFrame
-    df_ingresos = pd.DataFrame(ingresos)
-    df_gastos = pd.DataFrame(gastos)
+    df_ingresos = pd.DataFrame(ingresos.data)
+    df_gastos = pd.DataFrame(gastos.data)
 
-    # Convertir columna fecha a datetime
     if not df_ingresos.empty:
-        df_ingresos["fecha"] = pd.to_datetime(df_ingresos["fecha"])
+        df_ingresos["fecha"] = pd.to_datetime(df_ingresos["fecha"]).dt.date
         df_ingresos = df_ingresos[(df_ingresos["fecha"] >= fecha_inicio) & (df_ingresos["fecha"] <= fecha_fin)]
-        df_ingresos["fecha"] = df_ingresos["fecha"].dt.strftime("%d/%m/%Y")  # Mostrar fecha sin hora
+        df_ingresos["fecha"] = pd.to_datetime(df_ingresos["fecha"]).dt.strftime("%d/%m/%Y")
         df_ingresos["monto"] = df_ingresos["monto"].apply(lambda x: f"₡{x:,.2f}".replace(",", "X").replace(".", ",").replace("X", "."))
 
     if not df_gastos.empty:
-        df_gastos["fecha"] = pd.to_datetime(df_gastos["fecha"])
+        df_gastos["fecha"] = pd.to_datetime(df_gastos["fecha"]).dt.date
         df_gastos = df_gastos[(df_gastos["fecha"] >= fecha_inicio) & (df_gastos["fecha"] <= fecha_fin)]
-        df_gastos["fecha"] = df_gastos["fecha"].dt.strftime("%d/%m/%Y")  # Mostrar fecha sin hora
+        df_gastos["fecha"] = pd.to_datetime(df_gastos["fecha"]).dt.strftime("%d/%m/%Y")
         df_gastos["monto"] = df_gastos["monto"].apply(lambda x: f"₡{x:,.2f}".replace(",", "X").replace(".", ",").replace("X", "."))
 
-    # Mostrar resumen
-    total_ingresos = pd.to_numeric(df_ingresos["monto"].str.replace("₡", "").str.replace(".", "").str.replace(",", "."), errors="coerce").sum() if not df_ingresos.empty else 0
-    total_gastos = pd.to_numeric(df_gastos["monto"].str.replace("₡", "").str.replace(".", "").str.replace(",", "."), errors="coerce").sum() if not df_gastos.empty else 0
+    # Mostrar tablas
+    st.subheader("💰 Ingresos en el período")
+    if not df_ingresos.empty:
+        st.dataframe(df_ingresos)
+    else:
+        st.info("No hay ingresos registrados en el período.")
+
+    st.subheader("🧾 Gastos en el período")
+    if not df_gastos.empty:
+        st.dataframe(df_gastos)
+    else:
+        st.info("No hay gastos registrados en el período.")
+
+    # Cálculo del resumen
+    total_ingresos = sum(float(i["monto"]) for i in ingresos.data if fecha_inicio <= pd.to_datetime(i["fecha"]).date() <= fecha_fin)
+    total_gastos = sum(float(g["monto"]) for g in gastos.data if fecha_inicio <= pd.to_datetime(g["fecha"]).date() <= fecha_fin)
     balance = total_ingresos - total_gastos
 
-    st.markdown("### 💰 Resumen del período seleccionado:")
-    st.write(f"**Total de ingresos:** ₡{total_ingresos:,.2f}".replace(",", "X").replace(".", ",").replace("X", "."))
-    st.write(f"**Total de gastos:** ₡{total_gastos:,.2f}".replace(",", "X").replace(".", ",").replace("X", "."))
-    st.write(f"**Balance final:** ₡{balance:,.2f}".replace(",", "X").replace(".", ",").replace("X", "."))
+    # Mostrar resumen formateado
+    st.markdown("### 🪙 Resumen del período seleccionado:")
+    st.markdown(f"**Total de ingresos:** ₡{total_ingresos:,.2f}".replace(",", "X").replace(".", ",").replace("X", "."))
+    st.markdown(f"**Total de gastos:** ₡{total_gastos:,.2f}".replace(",", "X").replace(".", ",").replace("X", "."))
 
-    # Mostrar tablas
-    st.markdown("### 📥 Ingresos en el período")
-    st.dataframe(df_ingresos, use_container_width=True)
-
-    st.markdown("### 📤 Gastos en el período")
-    st.dataframe(df_gastos, use_container_width=True)
+    # Mostrar balance con color dinámico
+    color_balance = "green" if balance >= 0 else "red"
+    balance_formateado = f"₡{balance:,.2f}".replace(",", "X").replace(".", ",").replace("X", ".")
+    st.markdown(f"<p style='color:{color_balance}; font-weight:bold;'>Balance final: {balance_formateado}</p>", unsafe_allow_html=True)
 
 
 
