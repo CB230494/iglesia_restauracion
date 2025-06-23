@@ -14,8 +14,7 @@ from scripts.db_ingresos import (
 )
 from scripts.exportador_pdf import PDFReporte
 
-# Inicializar base de datos
-init_tables()
+
 
 # Menú lateral
 st.sidebar.title("📌 Navegación")
