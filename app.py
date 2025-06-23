@@ -29,12 +29,6 @@ if menu == "📥 Registro de Ingresos":
     st.title("📥 Registro de Ingresos")
 
     # ---------- FORMULARIO PARA NUEVO INGRESO ----------
-   from db_ingresos import insertar_ingreso, obtener_ingresos, eliminar_ingreso, actualizar_ingreso
-
-if menu == "📥 Registro de Ingresos":
-    st.title("📥 Registro de Ingresos")
-
-    # ---------- FORMULARIO PARA NUEVO INGRESO ----------
     st.subheader("Agregar nuevo ingreso")
     with st.form("form_nuevo_ingreso"):
         nueva_fecha = st.date_input("Fecha")
@@ -57,8 +51,12 @@ if menu == "📥 Registro de Ingresos":
 
     if ingresos:
         df = pd.DataFrame(ingresos)
+
+        # Formatear fecha y monto
+        df["fecha"] = pd.to_datetime(df["fecha"]).dt.strftime("%d/%m/%Y")
         df["monto"] = df["monto"].map(lambda x: round(x, 2))
 
+        # Generar archivo Excel en memoria
         output = io.BytesIO()
         with pd.ExcelWriter(output, engine='openpyxl') as writer:
             df.to_excel(writer, index=False, sheet_name="Ingresos")
@@ -70,6 +68,7 @@ if menu == "📥 Registro de Ingresos":
             mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
         )
 
+        # Mostrar cada ingreso
         for ingreso in ingresos:
             with st.container():
                 id_actual = ingreso['id']
@@ -112,7 +111,6 @@ if menu == "📥 Registro de Ingresos":
     else:
         st.info("No hay ingresos registrados.")
 
-
 # -------------------- OTRAS PESTAÑAS EN CONSTRUCCIÓN --------------------
 elif menu == "💸 Registro de Gastos":
     st.title("💸 Registro de Gastos")
@@ -129,6 +127,7 @@ elif menu == "📄 Exportar PDF":
 elif menu == "⚙️ Configuración":
     st.title("⚙️ Configuración del sistema")
     st.warning("Esta sección está en construcción.")
+
 
 
 
