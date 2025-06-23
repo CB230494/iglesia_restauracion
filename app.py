@@ -289,19 +289,82 @@ elif menu == "📄 Exportar PDF":
 
     if st.button("📥 Generar PDF"):
         try:
+            ingresos_df = obtener_ingresos()
+            gastos_df = obtener_gastos()
+
+            # Convertir fechas a datetime64
+            ingresos_df['fecha'] = pd.to_datetime(ingresos_df['fecha'])
+            gastos_df['fecha'] = pd.to_datetime(gastos_df['fecha'])
+
+            # Filtrar por rango
+            ingresos_filtrados = ingresos_df[(ingresos_df['fecha'] >= pd.to_datetime(fecha_inicio)) & (ingresos_df['fecha'] <= pd.to_datetime(fecha_fin))]
+            gastos_filtrados = gastos_df[(gastos_df['fecha'] >= pd.to_datetime(fecha_inicio)) & (gastos_df['fecha'] <= pd.to_datetime(fecha_fin))]
+
+            ingresos_por_tipo = ingresos_filtrados.groupby('tipo')['monto'].sum().reset_index()
+            gastos_por_tipo = gastos_filtrados.groupby('tipo')['monto'].sum().reset_index()
+
+            total_ingresos = ingresos_filtrados['monto'].sum()
+            total_gastos = gastos_filtrados['monto'].sum()
+            balance = total_ingresos - total_gastos
+
             pdf = FPDF()
             pdf.add_page()
             pdf.set_font("Arial", size=12)
 
-            # Texto de prueba para verificar que funciona
-            pdf.cell(200, 10, txt="Este es un PDF de prueba generado correctamente.", ln=True)
-            pdf.cell(200, 10, txt=f"Desde: {fecha_inicio} - Hasta: {fecha_fin}", ln=True)
+            # Leyenda y fechas
+            pdf.multi_cell(0, 10, "Este informe fue solicitado por los pastores Jeannett Loaiciga Segura y Carlos Castro Campos", align="L")
+            pdf.cell(0, 10, f"Período del informe: {fecha_inicio} al {fecha_fin}", ln=True)
 
-            pdf_output = pdf.output(dest='S').encode('latin1')  # Codificar correctamente
-            st.download_button("📩 Descargar PDF", data=pdf_output, file_name="informe_financiero.pdf", mime='application/pdf')
+            # Resumen de Ingresos
+            pdf.set_font("Arial", "B", 14)
+            pdf.cell(0, 10, "Resumen de Ingresos", ln=True)
+            pdf.set_font("Arial", size=12)
+            for _, row in ingresos_por_tipo.iterrows():
+                pdf.cell(0, 8, f"- {row['tipo']}: ₡{row['monto']:,.2f}", ln=True)
+            pdf.cell(0, 10, f"Total de ingresos: ₡{total_ingresos:,.2f}", ln=True)
+
+            # Resumen de Gastos
+            pdf.set_font("Arial", "B", 14)
+            pdf.cell(0, 10, "Resumen de Gastos", ln=True)
+            pdf.set_font("Arial", size=12)
+            for _, row in gastos_por_tipo.iterrows():
+                pdf.cell(0, 8, f"- {row['tipo']}: ₡{row['monto']:,.2f}", ln=True)
+            pdf.cell(0, 10, f"Total de gastos: ₡{total_gastos:,.2f}", ln=True)
+
+            # Balance final
+            pdf.set_font("Arial", "B", 14)
+            pdf.cell(0, 10, f"Balance final: ₡{balance:,.2f}", ln=True)
+            pdf.ln(5)
+
+            # Tabla detallada de ingresos
+            pdf.set_font("Arial", "B", 14)
+            pdf.cell(0, 10, "Detalle de Ingresos", ln=True)
+            pdf.set_font("Arial", size=10)
+            for _, row in ingresos_filtrados.iterrows():
+                detalle = f"{row['fecha'].date()} | {row['tipo']} | ₡{row['monto']:,.2f}"
+                if 'detalle' in row and pd.notna(row['detalle']):
+                    detalle += f" | {row['detalle']}"
+                pdf.multi_cell(0, 6, detalle)
+
+            pdf.ln(5)
+
+            # Tabla detallada de gastos
+            pdf.set_font("Arial", "B", 14)
+            pdf.cell(0, 10, "Detalle de Gastos", ln=True)
+            pdf.set_font("Arial", size=10)
+            for _, row in gastos_filtrados.iterrows():
+                detalle = f"{row['fecha'].date()} | {row['tipo']} | ₡{row['monto']:,.2f}"
+                if 'detalle' in row and pd.notna(row['detalle']):
+                    detalle += f" | {row['detalle']}"
+                pdf.multi_cell(0, 6, detalle)
+
+            # Descargar
+            pdf_output = pdf.output(dest='S').encode('latin1')
+            st.download_button("📩 Descargar PDF", data=pdf_output, file_name="informe_financiero_completo.pdf", mime='application/pdf')
 
         except Exception as e:
             st.error(f"❌ Error al generar el PDF: {e}")
+
 
 
 
