@@ -16,7 +16,7 @@ from db_gastos import (
     eliminar_gasto,
     actualizar_gasto
 )
-
+from exportador_pdf import PDF
 
 st.set_page_config(page_title="Sistema Iglesia Restauración", layout="centered")
 
@@ -272,7 +272,7 @@ elif menu == "📊 Reporte General":
 
 
 # -------------------- PESTAÑA: Generador de PDF --------------------
-from exportador_pdf import PDF
+
 
 elif menu == "📄 Exportar PDF":
     st.title("📄 Exportar PDF del Informe Financiero")
