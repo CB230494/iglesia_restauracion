@@ -1,4 +1,1 @@
-streamlit
-pandas
-fpdf
-git+https://github.com/supabase-community/supabase-py
+
