@@ -271,15 +271,54 @@ elif menu == "📊 Reporte General":
         st.error("⚠️ Error al obtener o procesar los datos. Verifica la conexión con Supabase o el formato de datos.")
 
 
+# -------------------- PESTAÑA: Generador de PDF --------------------
+from exportador_pdf import PDF
 
+elif menu == "📄 Exportar PDF":
+    st.title("📄 Exportar PDF del Informe Financiero")
+    st.write("Genera un PDF con el resumen de ingresos y gastos para un período seleccionado.")
+
+    col1, col2 = st.columns(2)
+    fecha_inicio = col1.date_input("📅 Fecha de inicio", value=datetime(2025, 1, 1))
+    fecha_fin = col2.date_input("📅 Fecha de fin", value=datetime.today())
+
+    if st.button("📤 Generar PDF"):
+        try:
+            ingresos = obtener_ingresos()
+            gastos = obtener_gastos()
+
+            df_ingresos = pd.DataFrame(ingresos).fillna("")
+            df_gastos = pd.DataFrame(gastos).fillna("")
+
+            df_ingresos["fecha"] = pd.to_datetime(df_ingresos["fecha"])
+            df_gastos["fecha"] = pd.to_datetime(df_gastos["fecha"])
+
+            ingresos_filtrados = df_ingresos[(df_ingresos["fecha"] >= fecha_inicio) & (df_ingresos["fecha"] <= fecha_fin)]
+            gastos_filtrados = df_gastos[(df_gastos["fecha"] >= fecha_inicio) & (df_gastos["fecha"] <= fecha_fin)]
+
+            total_ingresos = ingresos_filtrados["monto"].sum()
+            total_gastos = gastos_filtrados["monto"].sum()
+
+            pdf = PDF()
+            pdf.add_page()
+            pdf.add_legend(fecha_inicio, fecha_fin)
+            pdf.add_table("Ingresos en el período", ingresos_filtrados.to_dict(orient="records"))
+            pdf.add_table("Gastos en el período", gastos_filtrados.to_dict(orient="records"))
+            pdf.add_summary(total_ingresos, total_gastos)
+
+            pdf_path = "/mnt/data/informe_financiero.pdf"
+            pdf.output(pdf_path)
+
+            st.success("✅ Informe PDF generado correctamente.")
+            st.download_button("📥 Descargar PDF", data=open(pdf_path, "rb"), file_name="informe_financiero.pdf")
+        except Exception as e:
+            st.error(f"❌ Error al generar el PDF: {e}")
 
 
 
 
 # -------------------- OTRAS PESTAÑAS EN CONSTRUCCIÓN --------------------
-elif menu == "📄 Exportar PDF":
-    st.title("📄 Exportar reporte en PDF")
-    st.warning("Esta sección está en construcción.")
+
 
 elif menu == "⚙️ Configuración":
     st.title("⚙️ Configuración del sistema")
