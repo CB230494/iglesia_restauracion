@@ -276,7 +276,7 @@ elif menu == "📊 Reporte General":
 
 
 # -------------------- PESTAÑA: Generador de PDF --------------------
-elelif menu == "📄 Exportar PDF":
+elif menu == "📄 Exportar PDF":
     from fpdf import FPDF
     import datetime
 
