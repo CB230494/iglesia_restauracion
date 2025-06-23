@@ -225,6 +225,10 @@ elif menu == "📊 Reporte General":
     with col2:
         fecha_fin = st.date_input("📅 Fecha de fin", pd.to_datetime("today"))
 
+    # Convertir fechas de filtro a datetime64
+    fecha_inicio = pd.to_datetime(fecha_inicio)
+    fecha_fin = pd.to_datetime(fecha_fin)
+
     # Obtener datos
     ingresos = obtener_ingresos()
     gastos = obtener_gastos()
@@ -258,6 +262,7 @@ elif menu == "📊 Reporte General":
 
     st.markdown("### 📤 Gastos en el período")
     st.dataframe(df_gastos, use_container_width=True)
+
 
 
 
