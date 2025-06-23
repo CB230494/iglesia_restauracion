@@ -276,7 +276,7 @@ elif menu == "📊 Reporte General":
 
 
 # -------------------- PESTAÑA: Generador de PDF --------------------
-elif menu == "📄 Exportar PDF":
+elelif menu == "📄 Exportar PDF":
     from fpdf import FPDF
     import datetime
 
@@ -299,17 +299,26 @@ elif menu == "📄 Exportar PDF":
             total_gastos = sum(g.get("monto", 0.0) or 0.0 for g in gastos_filtrados)
             balance = total_ingresos - total_gastos
 
-            # Crear PDF
-            pdf = FPDF()
+            class PDF(FPDF):
+                def header(self):
+                    self.set_fill_color(0, 102, 204)  # Azul fuerte
+                    self.set_text_color(255, 255, 255)
+                    self.set_font("Arial", "B", 16)
+                    self.cell(0, 12, "Informe Financiero", ln=True, align="C", fill=True)
+
+                def footer(self):
+                    self.set_y(-15)
+                    self.set_font("Arial", "I", 8)
+                    self.set_text_color(128)
+                    self.cell(0, 10, f"Página {self.page_no()} - Iglesia Restauración Colonia Carvajal", 0, 0, "C")
+
+            pdf = PDF()
             pdf.add_page()
             pdf.set_auto_page_break(auto=True, margin=15)
-
-            # Encabezado
-            pdf.set_font("Arial", "B", 16)
-            pdf.set_text_color(0, 0, 0)
-            pdf.cell(0, 10, "Informe Financiero", ln=True, align="C")
-
+            pdf.set_text_color(0)
             pdf.ln(5)
+
+            # Descripción inicial
             pdf.set_font("Arial", "", 11)
             pdf.multi_cell(0, 10, "Este informe fue solicitado por los pastores Jeannett Loaiciga Segura y Carlos Castro Campos", align="L")
             pdf.ln(3)
@@ -317,18 +326,22 @@ elif menu == "📄 Exportar PDF":
             pdf.cell(0, 10, f"Período: {fecha_inicio} al {fecha_fin}", ln=True)
 
             # Ingresos
-            pdf.ln(8)
+            pdf.ln(6)
+            pdf.set_fill_color(204, 229, 255)  # celeste claro
             pdf.set_font("Arial", "B", 13)
-            pdf.cell(0, 10, "Ingresos", ln=True)
-            pdf.set_font("Arial", "", 11)
+            pdf.cell(0, 10, "Ingresos", ln=True, fill=True)
 
+            pdf.set_font("Arial", "", 11)
+            pdf.set_draw_color(0, 102, 204)
+            pdf.set_line_width(0.5)
+            pdf.ln(2)
             if ingresos_filtrados:
                 for i in ingresos_filtrados:
                     fecha = i.get("fecha", "Sin fecha")
                     tipo = i.get("tipo") or "Sin tipo"
                     monto = i.get("monto") or 0.0
                     detalle = i.get("detalle") or "Sin detalle"
-                    pdf.cell(0, 10, f"{fecha}: {tipo} - CRC {monto:,.2f} - {detalle}", ln=True)
+                    pdf.multi_cell(0, 8, f"{fecha}: {tipo} - CRC {monto:,.2f} - {detalle}", border=1)
             else:
                 pdf.cell(0, 10, "No se registraron ingresos en este período.", ln=True)
 
@@ -336,18 +349,22 @@ elif menu == "📄 Exportar PDF":
             pdf.cell(0, 10, f"Total ingresos: CRC {total_ingresos:,.2f}", ln=True)
 
             # Gastos
-            pdf.ln(8)
+            pdf.ln(6)
+            pdf.set_fill_color(255, 204, 204)  # rojo claro
             pdf.set_font("Arial", "B", 13)
-            pdf.cell(0, 10, "Gastos", ln=True)
-            pdf.set_font("Arial", "", 11)
+            pdf.cell(0, 10, "Gastos", ln=True, fill=True)
 
+            pdf.set_font("Arial", "", 11)
+            pdf.set_draw_color(204, 0, 0)
+            pdf.set_line_width(0.5)
+            pdf.ln(2)
             if gastos_filtrados:
                 for g in gastos_filtrados:
                     fecha = g.get("fecha", "Sin fecha")
                     tipo = g.get("tipo") or "Sin tipo"
                     monto = g.get("monto") or 0.0
                     detalle = g.get("detalle") or "Sin detalle"
-                    pdf.cell(0, 10, f"{fecha}: {tipo} - CRC {monto:,.2f} - {detalle}", ln=True)
+                    pdf.multi_cell(0, 8, f"{fecha}: {tipo} - CRC {monto:,.2f} - {detalle}", border=1)
             else:
                 pdf.cell(0, 10, "No se registraron gastos en este período.", ln=True)
 
@@ -356,14 +373,19 @@ elif menu == "📄 Exportar PDF":
 
             # Balance final
             pdf.ln(10)
+            pdf.set_fill_color(224, 255, 224)  # verde claro
             pdf.set_font("Arial", "B", 13)
-            pdf.cell(0, 10, f"Balance final: CRC {balance:,.2f}", ln=True)
+            pdf.cell(0, 10, f"Balance final: CRC {balance:,.2f}", ln=True, fill=True)
 
-            # Pie de página
-            pdf.set_y(-20)
-            pdf.set_font("Arial", "I", 8)
-            pdf.set_text_color(128, 128, 128)
-            pdf.cell(0, 10, f"Página {pdf.page_no()} - Iglesia Restauración Colonia Carvajal", 0, 0, "C")
+            # Espacio para firmas
+            pdf.ln(20)
+            pdf.set_font("Arial", "", 11)
+            pdf.cell(80, 10, "Firma Pastora Jeannett Loaiciga Segura", ln=0, align="C")
+            pdf.cell(30, 10, "", ln=0)  # Espacio en blanco
+            pdf.cell(80, 10, "Firma Pastor Carlos Castro Campos", ln=1, align="C")
+            pdf.cell(80, 10, "______________________________", ln=0, align="C")
+            pdf.cell(30, 10, "", ln=0)
+            pdf.cell(80, 10, "______________________________", ln=1, align="C")
 
             # Generar PDF
             pdf_output = pdf.output(dest="S").encode("latin-1", "ignore")
@@ -371,6 +393,7 @@ elif menu == "📄 Exportar PDF":
 
         except Exception as e:
             st.error(f"❌ Error al generar el PDF: {e}")
+
 
 
 
