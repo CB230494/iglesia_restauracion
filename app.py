@@ -1,9 +1,10 @@
 import streamlit as st
 import pandas as pd
 import io
-from openpyxl import Workbook
 from datetime import datetime
+from openpyxl import Workbook
 
+# Módulos locales
 from db_ingresos import (
     insertar_ingreso,
     obtener_ingresos,
@@ -17,7 +18,9 @@ from db_gastos import (
     eliminar_gasto,
     actualizar_gasto
 )
+
 from exportador_pdf import PDF
+
 
 st.set_page_config(page_title="Sistema Iglesia Restauración", layout="centered")
 
