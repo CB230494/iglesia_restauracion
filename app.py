@@ -1,4 +1,5 @@
 import streamlit as st
+import pandas as pd
 from db_ingresos import insertar_ingreso, obtener_ingresos
 
 st.set_page_config(page_title="Registro de Ingresos", layout="centered")
@@ -25,8 +26,15 @@ with st.form("formulario_ingreso"):
 # Mostrar los ingresos registrados
 st.subheader("📋 Ingresos registrados")
 datos = obtener_ingresos()
+
 if datos:
-    st.table(datos)
+    df = pd.DataFrame(datos)
+    
+    # Formato de monto con símbolo y 2 decimales
+    if "monto" in df.columns:
+        df["monto"] = df["monto"].map(lambda x: f"₡{x:,.2f}")
+    
+    st.table(df)
 else:
     st.info("No hay ingresos registrados todavía.")
 
