@@ -1,92 +1,113 @@
 from fpdf import FPDF
-import pandas as pd
-from datetime import datetime, date
+from datetime import datetime
 
 class PDF(FPDF):
     def header(self):
-        self.set_font("Arial", "B", 14)
-        self.set_text_color(33, 37, 41)  # Azul oscuro
+        # Título del documento
+        self.set_font("Helvetica", "B", 16)
+        self.set_text_color(0, 51, 102)  # Azul oscuro
         self.cell(0, 10, "Informe Financiero - Iglesia Restauración", ln=True, align="C")
         self.ln(5)
 
     def footer(self):
         self.set_y(-15)
-        self.set_font("Arial", "I", 8)
-        self.set_text_color(100, 100, 100)
+        self.set_font("Helvetica", "I", 8)
+        self.set_text_color(128)
         self.cell(0, 10, f"Página {self.page_no()}", align="C")
 
-    def add_title(self, texto):
-        self.set_font("Arial", "B", 16)
-        self.set_text_color(33, 37, 41)
-        self.cell(0, 10, texto, ln=True, align="L")
-        self.ln(5)
-
-    def add_subtitle(self, texto):
-        self.set_font("Arial", "B", 12)
-        self.set_text_color(255, 87, 34)  # Naranja
-        self.cell(0, 10, texto, ln=True, align="L")
-
-    def add_paragraph(self, texto):
-        self.set_font("Arial", "", 11)
-        self.set_text_color(33, 33, 33)
-        self.multi_cell(0, 10, texto)
-        self.ln(3)
-
-    def add_table(self, df, title, emoji=""):
-        self.set_font("Arial", "B", 13)
-        self.set_text_color(0, 102, 204)
-        self.cell(0, 10, f"{emoji} {title}", ln=True)
-        self.set_font("Arial", "B", 10)
-        self.set_text_color(0, 0, 0)
-
-        col_widths = [10, 30, 50, 30, 70]
-        headers = ["id", "fecha", "concepto", "monto", "observacion"]
-        for i, header in enumerate(headers):
-            self.cell(col_widths[i], 8, header, 1)
-        self.ln()
-
-        self.set_font("Arial", "", 10)
-        for _, row in df.iterrows():
-            self.cell(col_widths[0], 8, str(row["id"]), 1)
-
-            # Manejar fecha correctamente
-            fecha_str = row["fecha"].strftime('%d/%m/%Y') if isinstance(row["fecha"], (datetime, date)) else str(row["fecha"])
-            self.cell(col_widths[1], 8, fecha_str, 1)
-
-            self.cell(col_widths[2], 8, str(row["concepto"]), 1)
-            self.cell(col_widths[3], 8, str(row["monto"]), 1)
-
-            observacion = "" if pd.isna(row["observacion"]) or str(row["observacion"]).lower() == "none" else str(row["observacion"])
-            self.cell(col_widths[4], 8, observacion, 1)
-
-            self.ln()
-        self.ln(5)
-
-    def generate_report(self, ingresos_df, gastos_df, fecha_inicio, fecha_fin):
+    def generate_report(self, ingresos, gastos, fecha_inicio, fecha_fin):
         self.add_page()
+        self.set_auto_page_break(auto=True, margin=15)
 
-        # Leyenda principal
-        self.set_font("Arial", "", 11)
+        # Leyenda solicitada
+        self.set_font("Helvetica", "", 12)
+        self.set_text_color(0)
         leyenda = (
             "Este informe fue solicitado por los pastores Jeannett Loaiciga Segura "
-            "y Carlos Castro Campos.\n\n"
-            f"Período del informe: {fecha_inicio.strftime('%d/%m/%Y')} al {fecha_fin.strftime('%d/%m/%Y')}\n"
+            "y Carlos Castro Campos"
         )
         self.multi_cell(0, 10, leyenda)
-        self.ln(3)
+        self.ln(4)
 
-        # Títulos
-        self.add_title("Exportar PDF del Informe Financiero")
-        self.add_paragraph("A continuación se presenta el resumen financiero correspondiente al periodo seleccionado.")
+        # Período del informe
+        periodo = f"Período del informe: {fecha_inicio.strftime('%d/%m/%Y')} al {fecha_fin.strftime('%d/%m/%Y')}"
+        self.set_text_color(255, 102, 0)  # Naranja
+        self.cell(0, 10, periodo, ln=True)
+        self.ln(5)
 
-        if not ingresos_df.empty:
-            self.add_table(ingresos_df, "Ingresos en el período", emoji="💰")
+        # --- Ingresos ---
+        self.set_font("Helvetica", "B", 14)
+        self.set_text_color(0, 51, 102)
+        self.cell(0, 10, "Resumen de Ingresos", ln=True)
+        self.ln(2)
+
+        if ingresos.empty:
+            self.set_font("Helvetica", "", 12)
+            self.set_text_color(0)
+            self.cell(0, 10, "No hay ingresos registrados en este período.", ln=True)
         else:
-            self.add_paragraph("No se registraron ingresos durante el período seleccionado.")
+            self.set_font("Helvetica", "B", 11)
+            self.set_fill_color(0, 51, 102)
+            self.set_text_color(255)
+            self.cell(60, 8, "Fecha", 1, 0, "C", True)
+            self.cell(80, 8, "Tipo", 1, 0, "C", True)
+            self.cell(40, 8, "Monto (₡)", 1, 1, "C", True)
 
-        if not gastos_df.empty:
-            self.add_table(gastos_df, "Gastos en el período", emoji="💸")
+            self.set_font("Helvetica", "", 11)
+            self.set_text_color(0)
+            total_ingresos = 0
+            for _, row in ingresos.iterrows():
+                self.cell(60, 8, row["fecha"].strftime("%d/%m/%Y"), 1)
+                self.cell(80, 8, row["tipo"], 1)
+                self.cell(40, 8, f"₡{row['monto']:,.0f}", 1, ln=True)
+                total_ingresos += row["monto"]
+
+            self.set_font("Helvetica", "B", 12)
+            self.cell(140, 10, "Total de Ingresos", 1)
+            self.cell(40, 10, f"₡{total_ingresos:,.0f}", 1, ln=True)
+
+        self.ln(10)
+
+        # --- Gastos ---
+        self.set_font("Helvetica", "B", 14)
+        self.set_text_color(0, 51, 102)
+        self.cell(0, 10, "Resumen de Gastos", ln=True)
+        self.ln(2)
+
+        if gastos.empty:
+            self.set_font("Helvetica", "", 12)
+            self.set_text_color(0)
+            self.cell(0, 10, "No hay gastos registrados en este período.", ln=True)
         else:
-            self.add_paragraph("No se registraron gastos durante el período seleccionado.")
+            self.set_font("Helvetica", "B", 11)
+            self.set_fill_color(255, 102, 0)
+            self.set_text_color(255)
+            self.cell(60, 8, "Fecha", 1, 0, "C", True)
+            self.cell(80, 8, "Categoría", 1, 0, "C", True)
+            self.cell(40, 8, "Monto (₡)", 1, 1, "C", True)
+
+            self.set_font("Helvetica", "", 11)
+            self.set_text_color(0)
+            total_gastos = 0
+            for _, row in gastos.iterrows():
+                self.cell(60, 8, row["fecha"].strftime("%d/%m/%Y"), 1)
+                self.cell(80, 8, row["categoria"], 1)
+                self.cell(40, 8, f"₡{row['monto']:,.0f}", 1, ln=True)
+                total_gastos += row["monto"]
+
+            self.set_font("Helvetica", "B", 12)
+            self.cell(140, 10, "Total de Gastos", 1)
+            self.cell(40, 10, f"₡{total_gastos:,.0f}", 1, ln=True)
+
+        self.ln(10)
+
+        # Saldo final
+        self.set_font("Helvetica", "B", 13)
+        self.set_text_color(0, 102, 0)
+        saldo = total_ingresos - total_gastos
+        self.cell(140, 12, "Saldo Final del Período", 1)
+        self.cell(40, 12, f"₡{saldo:,.0f}", 1, ln=True)
+
+        self.output("informe_financiero.pdf", "F")
 
 
