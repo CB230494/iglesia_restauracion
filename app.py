@@ -276,91 +276,33 @@ elif menu == "📊 Reporte General":
 
 
 # -------------------- PESTAÑA: Generador de PDF --------------------
-elif seccion == "📄 Exportar PDF":
+elif menu == "📄 Exportar PDF":
+    from fpdf import FPDF
+    import datetime
 
-    st.markdown("## 🧾 Exportar PDF del Informe Financiero")
+    st.title("📄 Exportar PDF del Informe Financiero")
     st.write("Genera un PDF con el resumen de ingresos y gastos para un período seleccionado.")
 
     col1, col2 = st.columns(2)
-    with col1:
-        fecha_inicio = st.date_input("📅 Fecha de inicio", value=datetime(2025, 1, 1).date())
-    with col2:
-        fecha_fin = st.date_input("📅 Fecha de fin", value=datetime.today().date())
+    fecha_inicio = col1.date_input("📅 Fecha de inicio", value=datetime.date(2025, 1, 1))
+    fecha_fin = col2.date_input("📅 Fecha de fin", value=datetime.date(2025, 6, 30))
 
     if st.button("📥 Generar PDF"):
         try:
-            # Convertir fechas seleccionadas a datetime64[ns] para comparación válida
-            fecha_inicio_dt = pd.to_datetime(fecha_inicio)
-            fecha_fin_dt = pd.to_datetime(fecha_fin)
-
-            # Obtener datos de la base
-            ingresos = obtener_ingresos()
-            gastos = obtener_gastos()
-
-            # Convertir a DataFrames
-            df_ingresos = pd.DataFrame(ingresos, columns=["id", "fecha", "monto", "tipo", "descripcion"])
-            df_gastos = pd.DataFrame(gastos, columns=["id", "fecha", "monto", "tipo", "descripcion"])
-
-            # Convertir columna de fechas
-            df_ingresos["fecha"] = pd.to_datetime(df_ingresos["fecha"])
-            df_gastos["fecha"] = pd.to_datetime(df_gastos["fecha"])
-
-            # Filtrar por rango de fechas
-            ingresos_filtrados = df_ingresos[(df_ingresos["fecha"] >= fecha_inicio_dt) & (df_ingresos["fecha"] <= fecha_fin_dt)]
-            gastos_filtrados = df_gastos[(df_gastos["fecha"] >= fecha_inicio_dt) & (df_gastos["fecha"] <= fecha_fin_dt)]
-
-            # Crear PDF
-            pdf = PDF()
-            pdf.alias_nb_pages()
+            pdf = FPDF()
             pdf.add_page()
+            pdf.set_font("Arial", size=12)
 
-            pdf.set_font("Arial", "B", 14)
-            pdf.set_text_color(33, 37, 41)
-            pdf.cell(0, 10, "Informe Financiero", ln=True, align="C")
-            pdf.set_font("Arial", "", 12)
-            pdf.cell(0, 10, f"Este informe fue solicitado por los pastores Jeannett Loaiciga Segura y Carlos Castro Campos", ln=True)
-            pdf.cell(0, 10, f"Período: {fecha_inicio} a {fecha_fin}", ln=True)
-            pdf.ln(10)
+            # Texto de prueba para verificar que funciona
+            pdf.cell(200, 10, txt="Este es un PDF de prueba generado correctamente.", ln=True)
+            pdf.cell(200, 10, txt=f"Desde: {fecha_inicio} - Hasta: {fecha_fin}", ln=True)
 
-            def agregar_tabla(titulo, data):
-                pdf.set_font("Arial", "B", 12)
-                pdf.set_fill_color(240, 240, 240)
-                pdf.cell(0, 10, titulo, ln=True)
-                pdf.set_font("Arial", "", 11)
-                if not data.empty:
-                    for index, row in data.iterrows():
-                        fila = f"{row['fecha'].strftime('%Y-%m-%d')} - ₡{row['monto']:,} - {row['tipo']} - {row['descripcion']}"
-                        fila = fila.encode('latin-1', 'replace').decode('latin-1')
-                        pdf.cell(0, 8, fila, ln=True)
-                else:
-                    pdf.cell(0, 8, "Sin registros para este periodo.", ln=True)
-                pdf.ln(5)
-
-            agregar_tabla("🟢 Ingresos", ingresos_filtrados)
-            agregar_tabla("🔴 Gastos", gastos_filtrados)
-
-            total_ingresos = ingresos_filtrados["monto"].sum()
-            total_gastos = gastos_filtrados["monto"].sum()
-            balance = total_ingresos - total_gastos
-
-            pdf.set_font("Arial", "B", 12)
-            pdf.cell(0, 10, "Resumen Financiero:", ln=True)
-            pdf.set_font("Arial", "", 12)
-            pdf.cell(0, 8, f"Total de ingresos: ₡{total_ingresos:,.0f}", ln=True)
-            pdf.cell(0, 8, f"Total de gastos: ₡{total_gastos:,.0f}", ln=True)
-            pdf.cell(0, 8, f"Balance: ₡{balance:,.0f}", ln=True)
-
-            # Descargar PDF
-            pdf_output = pdf.output(dest="S").encode("latin-1")
-            st.download_button(
-                label="📄 Descargar PDF",
-                data=pdf_output,
-                file_name="informe_financiero.pdf",
-                mime="application/pdf"
-            )
+            pdf_output = pdf.output(dest='S').encode('latin1')  # Codificar correctamente
+            st.download_button("📩 Descargar PDF", data=pdf_output, file_name="informe_financiero.pdf", mime='application/pdf')
 
         except Exception as e:
             st.error(f"❌ Error al generar el PDF: {e}")
+
 
 
 
