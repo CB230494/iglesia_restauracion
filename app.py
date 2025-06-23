@@ -292,9 +292,9 @@ elif menu == "📄 Exportar PDF":
 
     if st.button("📥 Generar PDF"):
         try:
-            # Obtener y convertir fechas
-            df_ingresos = obtener_ingresos()
-            df_gastos = obtener_gastos()
+            # ✅ Conversión segura a DataFrame
+            df_ingresos = pd.DataFrame(obtener_ingresos())
+            df_gastos = pd.DataFrame(obtener_gastos())
             df_ingresos['fecha'] = pd.to_datetime(df_ingresos['fecha'])
             df_gastos['fecha'] = pd.to_datetime(df_gastos['fecha'])
 
@@ -311,8 +311,6 @@ elif menu == "📄 Exportar PDF":
             pdf = FPDF()
             pdf.add_page()
             pdf.set_font("Arial", size=12)
-
-            # Leyenda inicial
             pdf.set_font("Arial", style='B', size=14)
             pdf.cell(0, 10, "Informe Financiero", ln=True, align="C")
             pdf.set_font("Arial", size=10)
@@ -327,7 +325,7 @@ elif menu == "📄 Exportar PDF":
             if not ingresos_filtrados.empty:
                 for _, row in ingresos_filtrados.iterrows():
                     texto = f"{row['fecha'].date()} | {row['tipo']} | ₡{row['monto']:.2f}"
-                    if pd.notna(row['detalle']):
+                    if pd.notna(row.get('detalle', '')):
                         texto += f" | {row['detalle']}"
                     pdf.multi_cell(0, 8, texto)
             else:
@@ -342,7 +340,7 @@ elif menu == "📄 Exportar PDF":
             if not gastos_filtrados.empty:
                 for _, row in gastos_filtrados.iterrows():
                     texto = f"{row['fecha'].date()} | {row['tipo']} | ₡{row['monto']:.2f}"
-                    if pd.notna(row['detalle']):
+                    if pd.notna(row.get('detalle', '')):
                         texto += f" | {row['detalle']}"
                     pdf.multi_cell(0, 8, texto)
             else:
@@ -353,7 +351,7 @@ elif menu == "📄 Exportar PDF":
             pdf.set_font("Arial", style='I', size=8)
             pdf.cell(0, 10, "Página 1 - Sistema Iglesia Restauración", ln=True, align="C")
 
-            # Mostrar PDF en Streamlit
+            # Mostrar PDF
             pdf_bytes = pdf.output(dest='S').encode('latin1')
             st.download_button(
                 label="📄 Descargar Informe PDF",
@@ -364,7 +362,6 @@ elif menu == "📄 Exportar PDF":
 
         except Exception as e:
             st.error(f"❌ Error al generar el PDF: {e}")
-
 
 
 
