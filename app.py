@@ -206,9 +206,9 @@ elif menu == "💸 Registro de Gastos":
 
 
 # -------------------- PESTAÑA: BALANCE GENERAL --------------------
-elif opcion_menu == "📊 Balance General":
-    st.markdown("### 📊 Balance General")
-    st.markdown("Visualiza el resumen financiero general según los ingresos y gastos registrados.")
+elif menu == "📊 Reporte General":
+    st.markdown("## 📊 REPORTE GENERAL")
+    st.markdown("Resumen financiero entre ingresos y gastos registrados, con filtro por rango de fechas.")
 
     # Filtro de fechas
     col1, col2 = st.columns(2)
@@ -217,11 +217,10 @@ elif opcion_menu == "📊 Balance General":
     with col2:
         fecha_fin = st.date_input("📅 Fecha de fin", value=pd.to_datetime("today"))
 
-    # Obtener ingresos y gastos
+    # Obtener datos
     ingresos = obtener_ingresos()
     gastos = obtener_gastos()
 
-    # Convertir fechas a tipo datetime
     df_ingresos = pd.DataFrame(ingresos)
     df_gastos = pd.DataFrame(gastos)
 
@@ -241,10 +240,11 @@ elif opcion_menu == "📊 Balance General":
 
     balance = total_ingresos - total_gastos
 
-    # Mostrar resultados
+    # Mostrar totales
     st.success(f"💰 Total de ingresos: ₡{total_ingresos:,.2f}")
     st.error(f"💸 Total de gastos: ₡{total_gastos:,.2f}")
     st.info(f"📘 Balance disponible: ₡{balance:,.2f}")
+
 
 # -------------------- OTRAS PESTAÑAS EN CONSTRUCCIÓN --------------------
 elif menu == "📄 Exportar PDF":
