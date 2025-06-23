@@ -111,10 +111,93 @@ if menu == "📥 Registro de Ingresos":
     else:
         st.info("No hay ingresos registrados.")
 
-# -------------------- OTRAS PESTAÑAS EN CONSTRUCCIÓN --------------------
+
+# -------------------- PESTAÑA: REGISTRO DE GASTOS --------------------
 elif menu == "💸 Registro de Gastos":
+    from db_gastos import insertar_gasto, obtener_gastos, eliminar_gasto, actualizar_gasto
+
     st.title("💸 Registro de Gastos")
-    st.warning("Esta sección está en construcción.")
+
+    # ---------- FORMULARIO PARA NUEVO GASTO ----------
+    st.subheader("Registrar nuevo gasto")
+    with st.form("form_nuevo_gasto"):
+        nueva_fecha = st.date_input("Fecha del gasto")
+        nuevo_concepto = st.text_input("Concepto del gasto")
+        nuevo_monto = st.number_input("Monto (₡)", min_value=0.0, step=1000.0, format="%.2f")
+        nueva_observacion = st.text_area("Observación (opcional)")
+        enviar = st.form_submit_button("Registrar")
+
+        if enviar:
+            resultado = insertar_gasto(str(nueva_fecha), nuevo_concepto, nuevo_monto, nueva_observacion)
+            if resultado.data:
+                st.success("✅ Gasto registrado exitosamente")
+                st.rerun()
+            else:
+                st.error(f"❌ Error al registrar: {resultado.error}")
+
+    # ---------- LISTADO DE GASTOS + DESCARGA ----------
+    st.subheader("📋 Gastos registrados")
+    gastos = obtener_gastos()
+
+    if gastos:
+        df = pd.DataFrame(gastos)
+        df["fecha"] = pd.to_datetime(df["fecha"]).dt.strftime("%d/%m/%Y")
+        df["monto"] = df["monto"].map(lambda x: round(x, 2))
+
+        output = io.BytesIO()
+        with pd.ExcelWriter(output, engine='openpyxl') as writer:
+            df.to_excel(writer, index=False, sheet_name="Gastos")
+
+        st.download_button(
+            label="⬇️ Descargar respaldo en Excel",
+            data=output.getvalue(),
+            file_name="respaldo_gastos.xlsx",
+            mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+        )
+
+        # ---------- MOSTRAR LISTA CON EDICIÓN EN LÍNEA ----------
+        for gasto in gastos:
+            with st.container():
+                id_actual = gasto['id']
+                editando = st.session_state.get(f"edit_gasto_{id_actual}", False)
+
+                if editando:
+                    st.markdown(f"### ✏️ Editando gasto ID {id_actual}")
+                    fecha = st.date_input("Fecha", value=pd.to_datetime(gasto["fecha"]), key=f"fecha_gasto_{id_actual}")
+                    concepto = st.text_input("Concepto", value=gasto["concepto"], key=f"concepto_gasto_{id_actual}")
+                    monto = st.number_input("Monto (₡)", min_value=0.0, value=float(gasto["monto"]),
+                                            format="%.2f", key=f"monto_gasto_{id_actual}")
+                    observacion = st.text_input("Observación", value=gasto["observacion"], key=f"obs_gasto_{id_actual}")
+                    col1, col2 = st.columns([1, 1])
+                    if col1.button("💾 Guardar", key=f"guardar_gasto_{id_actual}"):
+                        actualizar_gasto(id_actual, str(fecha), concepto, monto, observacion)
+                        st.session_state[f"edit_gasto_{id_actual}"] = False
+                        st.success("✅ Gasto actualizado")
+                        st.rerun()
+                    if col2.button("❌ Cancelar", key=f"cancelar_gasto_{id_actual}"):
+                        st.session_state[f"edit_gasto_{id_actual}"] = False
+                        st.rerun()
+
+                else:
+                    fecha_formateada = pd.to_datetime(gasto['fecha']).strftime("%d/%m/%Y")
+                    cols = st.columns([1, 2, 2, 2, 3, 1, 1])
+                    cols[0].markdown(f"**ID:** {gasto['id']}")
+                    cols[1].markdown(f"📅 {fecha_formateada}")
+                    cols[2].markdown(f"📄 {gasto['concepto']}")
+                    cols[3].markdown(f"💰 ₡{gasto['monto']:,.2f}")
+                    cols[4].markdown(f"📝 {gasto['observacion'] or '—'}")
+                    if cols[5].button("✏️", key=f"editar_gasto_{id_actual}"):
+                        st.session_state[f"edit_gasto_{id_actual}"] = True
+                        st.rerun()
+                    if cols[6].button("🗑️", key=f"eliminar_gasto_{id_actual}"):
+                        eliminar_gasto(id_actual)
+                        st.success("✅ Gasto eliminado")
+                        st.rerun()
+    else:
+        st.info("No hay gastos registrados.")
+
+# -------------------- OTRAS PESTAÑAS EN CONSTRUCCIÓN --------------------
+
 
 elif menu == "📊 Reporte General":
     st.title("📊 Reporte General")
