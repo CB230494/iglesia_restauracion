@@ -292,18 +292,29 @@ elif menu == "📄 Exportar PDF":
 
     if st.button("📥 Generar PDF"):
         try:
-            # ✅ Conversión segura a DataFrame
+            # Convertir datos a DataFrame
             df_ingresos = pd.DataFrame(obtener_ingresos())
             df_gastos = pd.DataFrame(obtener_gastos())
-            df_ingresos['fecha'] = pd.to_datetime(df_ingresos['fecha'])
-            df_gastos['fecha'] = pd.to_datetime(df_gastos['fecha'])
 
+            # Validar columnas mínimas requeridas
+            columnas_minimas = ['fecha', 'tipo', 'monto']
+            for col in columnas_minimas:
+                if col not in df_ingresos.columns:
+                    df_ingresos[col] = ''
+                if col not in df_gastos.columns:
+                    df_gastos[col] = ''
+
+            # Convertir fechas
+            df_ingresos['fecha'] = pd.to_datetime(df_ingresos['fecha'], errors='coerce')
+            df_gastos['fecha'] = pd.to_datetime(df_gastos['fecha'], errors='coerce')
+
+            # Filtrar por fechas
             ingresos_filtrados = df_ingresos[
-                (df_ingresos['fecha'] >= pd.to_datetime(fecha_inicio)) & 
+                (df_ingresos['fecha'] >= pd.to_datetime(fecha_inicio)) &
                 (df_ingresos['fecha'] <= pd.to_datetime(fecha_fin))
             ]
             gastos_filtrados = df_gastos[
-                (df_gastos['fecha'] >= pd.to_datetime(fecha_inicio)) & 
+                (df_gastos['fecha'] >= pd.to_datetime(fecha_inicio)) &
                 (df_gastos['fecha'] <= pd.to_datetime(fecha_fin))
             ]
 
@@ -324,7 +335,7 @@ elif menu == "📄 Exportar PDF":
             pdf.set_font("Arial", size=10)
             if not ingresos_filtrados.empty:
                 for _, row in ingresos_filtrados.iterrows():
-                    texto = f"{row['fecha'].date()} | {row['tipo']} | ₡{row['monto']:.2f}"
+                    texto = f"{row.get('fecha', ''):%Y-%m-%d} | {row.get('tipo', 'N/A')} | ₡{row.get('monto', 0):,.2f}"
                     if pd.notna(row.get('detalle', '')):
                         texto += f" | {row['detalle']}"
                     pdf.multi_cell(0, 8, texto)
@@ -339,12 +350,25 @@ elif menu == "📄 Exportar PDF":
             pdf.set_font("Arial", size=10)
             if not gastos_filtrados.empty:
                 for _, row in gastos_filtrados.iterrows():
-                    texto = f"{row['fecha'].date()} | {row['tipo']} | ₡{row['monto']:.2f}"
+                    texto = f"{row.get('fecha', ''):%Y-%m-%d} | {row.get('tipo', 'N/A')} | ₡{row.get('monto', 0):,.2f}"
                     if pd.notna(row.get('detalle', '')):
                         texto += f" | {row['detalle']}"
                     pdf.multi_cell(0, 8, texto)
             else:
                 pdf.cell(0, 10, "No se registran gastos en el período.", ln=True)
+
+            # Resumen
+            total_ingresos = ingresos_filtrados['monto'].sum()
+            total_gastos = gastos_filtrados['monto'].sum()
+            balance = total_ingresos - total_gastos
+
+            pdf.ln(5)
+            pdf.set_font("Arial", style='B', size=12)
+            pdf.cell(0, 10, "Resumen Financiero", ln=True)
+            pdf.set_font("Arial", size=10)
+            pdf.cell(0, 8, f"Total ingresos: ₡{total_ingresos:,.2f}", ln=True)
+            pdf.cell(0, 8, f"Total gastos: ₡{total_gastos:,.2f}", ln=True)
+            pdf.cell(0, 8, f"Balance final: ₡{balance:,.2f}", ln=True)
 
             # Pie de página
             pdf.ln(10)
@@ -362,6 +386,7 @@ elif menu == "📄 Exportar PDF":
 
         except Exception as e:
             st.error(f"❌ Error al generar el PDF: {e}")
+
 
 
 
