@@ -276,12 +276,20 @@ elif menu == "📊 Reporte General":
 
 
 elif menu == "📄 Exportar PDF":
+    from datetime import datetime
+    import pandas as pd
+    from exportador_pdf import PDF
+
     st.title("📄 Exportar PDF del Informe Financiero")
     st.write("Genera un PDF con el resumen de ingresos y gastos para un período seleccionado.")
 
     col1, col2 = st.columns(2)
-    fecha_inicio = col1.date_input("📅 Fecha de inicio", value=datetime(2025, 1, 1))
-    fecha_fin = col2.date_input("📅 Fecha de fin", value=datetime.today())
+    fecha_inicio = col1.date_input("📅 Fecha de inicio", value=datetime(2025, 1, 1).date())
+    fecha_fin = col2.date_input("📅 Fecha de fin", value=datetime.today().date())
+
+    # 🔧 Convertimos a tipo datetime64[ns] para evitar errores de comparación
+    fecha_inicio = pd.to_datetime(fecha_inicio)
+    fecha_fin = pd.to_datetime(fecha_fin)
 
     if st.button("📤 Generar PDF"):
         try:
@@ -294,13 +302,17 @@ elif menu == "📄 Exportar PDF":
             df_ingresos["fecha"] = pd.to_datetime(df_ingresos["fecha"])
             df_gastos["fecha"] = pd.to_datetime(df_gastos["fecha"])
 
-            ingresos_filtrados = df_ingresos[(df_ingresos["fecha"] >= fecha_inicio) & (df_ingresos["fecha"] <= fecha_fin)]
-            gastos_filtrados = df_gastos[(df_gastos["fecha"] >= fecha_inicio) & (df_gastos["fecha"] <= fecha_fin)]
+            ingresos_filtrados = df_ingresos[
+                (df_ingresos["fecha"] >= fecha_inicio) & (df_ingresos["fecha"] <= fecha_fin)
+            ]
+            gastos_filtrados = df_gastos[
+                (df_gastos["fecha"] >= fecha_inicio) & (df_gastos["fecha"] <= fecha_fin)
+            ]
 
             total_ingresos = ingresos_filtrados["monto"].sum()
             total_gastos = gastos_filtrados["monto"].sum()
 
-            from exportador_pdf import PDF
+            # ✅ Crear el PDF
             pdf = PDF()
             pdf.add_page()
             pdf.add_legend(fecha_inicio, fecha_fin)
