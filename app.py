@@ -276,56 +276,94 @@ elif menu == "📊 Reporte General":
 
 
 # -------------------- PESTAÑA: Generador de PDF --------------------
-# Detalle de ingresos
-pdf.set_font("Arial", "B", 14)
-pdf.cell(0, 10, "Detalle de Ingresos", ln=True)
-pdf.set_font("Arial", size=10)
+elif menu == "📄 Exportar PDF":
+    import datetime
+    import pandas as pd
+    from fpdf import FPDF
+    from db_ingresos import obtener_ingresos
+    from db_gastos import obtener_gastos
 
-if not ingresos_filtrados.empty:
-    for _, row in ingresos_filtrados.iterrows():
-        fecha = row.get('fecha')
-        tipo = row.get('tipo', '')
-        monto = row.get('monto', 0)
-        detalle_texto = row.get('detalle', '')
+    st.title("📄 Exportar PDF del Informe Financiero")
+    st.write("Genera un PDF con el resumen de ingresos y gastos para un período seleccionado.")
 
-        if pd.notna(fecha):
-            fecha_str = pd.to_datetime(fecha).date()
-        else:
-            fecha_str = ''
+    col1, col2 = st.columns(2)
+    fecha_inicio = col1.date_input("📅 Fecha de inicio", value=datetime.date(2025, 1, 1))
+    fecha_fin = col2.date_input("📅 Fecha de fin", value=datetime.date(2025, 6, 30))
 
-        linea = f"{fecha_str} | {tipo} | ₡{monto:,.2f}"
-        if pd.notna(detalle_texto):
-            linea += f" | {detalle_texto}"
-        pdf.multi_cell(0, 6, linea)
-else:
-    pdf.cell(0, 8, "No hay ingresos registrados en el período.", ln=True)
+    if st.button("📥 Generar PDF"):
+        try:
+            # Obtener y convertir fechas
+            df_ingresos = obtener_ingresos()
+            df_gastos = obtener_gastos()
+            df_ingresos['fecha'] = pd.to_datetime(df_ingresos['fecha'])
+            df_gastos['fecha'] = pd.to_datetime(df_gastos['fecha'])
 
-pdf.ln(5)
+            ingresos_filtrados = df_ingresos[
+                (df_ingresos['fecha'] >= pd.to_datetime(fecha_inicio)) & 
+                (df_ingresos['fecha'] <= pd.to_datetime(fecha_fin))
+            ]
+            gastos_filtrados = df_gastos[
+                (df_gastos['fecha'] >= pd.to_datetime(fecha_inicio)) & 
+                (df_gastos['fecha'] <= pd.to_datetime(fecha_fin))
+            ]
 
-# Detalle de gastos (similar lógica)
-pdf.set_font("Arial", "B", 14)
-pdf.cell(0, 10, "Detalle de Gastos", ln=True)
-pdf.set_font("Arial", size=10)
+            # Crear PDF
+            pdf = FPDF()
+            pdf.add_page()
+            pdf.set_font("Arial", size=12)
 
-if not gastos_filtrados.empty:
-    for _, row in gastos_filtrados.iterrows():
-        fecha = row.get('fecha')
-        tipo = row.get('tipo', '')
-        monto = row.get('monto', 0)
-        detalle_texto = row.get('detalle', '')
+            # Leyenda inicial
+            pdf.set_font("Arial", style='B', size=14)
+            pdf.cell(0, 10, "Informe Financiero", ln=True, align="C")
+            pdf.set_font("Arial", size=10)
+            pdf.multi_cell(0, 8, "Este informe fue solicitado por los pastores Jeannett Loaiciga Segura y Carlos Castro Campos.")
+            pdf.cell(0, 10, f"Período: {fecha_inicio} hasta {fecha_fin}", ln=True)
+            pdf.ln(5)
 
-        if pd.notna(fecha):
-            fecha_str = pd.to_datetime(fecha).date()
-        else:
-            fecha_str = ''
+            # Ingresos
+            pdf.set_font("Arial", style='B', size=12)
+            pdf.cell(0, 10, "🟢 Ingresos", ln=True)
+            pdf.set_font("Arial", size=10)
+            if not ingresos_filtrados.empty:
+                for _, row in ingresos_filtrados.iterrows():
+                    texto = f"{row['fecha'].date()} | {row['tipo']} | ₡{row['monto']:.2f}"
+                    if pd.notna(row['detalle']):
+                        texto += f" | {row['detalle']}"
+                    pdf.multi_cell(0, 8, texto)
+            else:
+                pdf.cell(0, 10, "No se registran ingresos en el período.", ln=True)
 
-        linea = f"{fecha_str} | {tipo} | ₡{monto:,.2f}"
-        if pd.notna(detalle_texto):
-            linea += f" | {detalle_texto}"
-        pdf.multi_cell(0, 6, linea)
-else:
-    pdf.cell(0, 8, "No hay gastos registrados en el período.", ln=True)
+            pdf.ln(5)
 
+            # Gastos
+            pdf.set_font("Arial", style='B', size=12)
+            pdf.cell(0, 10, "🔴 Gastos", ln=True)
+            pdf.set_font("Arial", size=10)
+            if not gastos_filtrados.empty:
+                for _, row in gastos_filtrados.iterrows():
+                    texto = f"{row['fecha'].date()} | {row['tipo']} | ₡{row['monto']:.2f}"
+                    if pd.notna(row['detalle']):
+                        texto += f" | {row['detalle']}"
+                    pdf.multi_cell(0, 8, texto)
+            else:
+                pdf.cell(0, 10, "No se registran gastos en el período.", ln=True)
+
+            # Pie de página
+            pdf.ln(10)
+            pdf.set_font("Arial", style='I', size=8)
+            pdf.cell(0, 10, "Página 1 - Sistema Iglesia Restauración", ln=True, align="C")
+
+            # Mostrar PDF en Streamlit
+            pdf_bytes = pdf.output(dest='S').encode('latin1')
+            st.download_button(
+                label="📄 Descargar Informe PDF",
+                data=pdf_bytes,
+                file_name=f"informe_financiero_{fecha_inicio}_a_{fecha_fin}.pdf",
+                mime='application/pdf'
+            )
+
+        except Exception as e:
+            st.error(f"❌ Error al generar el PDF: {e}")
 
 
 
