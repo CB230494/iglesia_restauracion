@@ -228,8 +228,8 @@ elif menu == "📊 Reporte General":
         ingresos = obtener_ingresos()
         gastos = obtener_gastos()
 
-        df_ingresos = pd.DataFrame(ingresos.data) if ingresos and ingresos.data else pd.DataFrame()
-        df_gastos = pd.DataFrame(gastos.data) if gastos and gastos.data else pd.DataFrame()
+        df_ingresos = pd.DataFrame(ingresos)
+        df_gastos = pd.DataFrame(gastos)
 
         if not df_ingresos.empty:
             df_ingresos["fecha"] = pd.to_datetime(df_ingresos["fecha"]).dt.date
@@ -251,13 +251,12 @@ elif menu == "📊 Reporte General":
         st.dataframe(df_gastos, use_container_width=True)
 
         # Cálculo numérico del balance
-        total_ingresos = sum([float(i["monto"]) for i in ingresos.data if fecha_inicio <= pd.to_datetime(i["fecha"]).date() <= fecha_fin])
-        total_gastos = sum([float(i["monto"]) for i in gastos.data if fecha_inicio <= pd.to_datetime(i["fecha"]).date() <= fecha_fin])
+        total_ingresos = sum([i["monto"] for i in ingresos if fecha_inicio <= pd.to_datetime(i["fecha"]).date() <= fecha_fin])
+        total_gastos = sum([i["monto"] for i in gastos if fecha_inicio <= pd.to_datetime(i["fecha"]).date() <= fecha_fin])
         balance_final = total_ingresos - total_gastos
-
         color = "green" if balance_final >= 0 else "red"
 
-        # Mostrar resumen con color
+        # Mostrar resumen
         st.markdown("---")
         st.markdown("### 🪙 Resumen del período seleccionado:")
         st.markdown(f"**Total de ingresos:** ₡{total_ingresos:,.2f}".replace(",", "X").replace(".", ",").replace("X", "."))
