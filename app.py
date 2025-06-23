@@ -205,14 +205,48 @@ elif menu == "💸 Registro de Gastos":
 
 
 
+# -------------------- PESTAÑA: BALANCE GENERAL --------------------
+elif opcion_menu == "📊 Balance General":
+    st.markdown("### 📊 Balance General")
+    st.markdown("Visualiza el resumen financiero general según los ingresos y gastos registrados.")
+
+    # Filtro de fechas
+    col1, col2 = st.columns(2)
+    with col1:
+        fecha_inicio = st.date_input("📅 Fecha de inicio", value=pd.to_datetime("2025-01-01"))
+    with col2:
+        fecha_fin = st.date_input("📅 Fecha de fin", value=pd.to_datetime("today"))
+
+    # Obtener ingresos y gastos
+    ingresos = obtener_ingresos()
+    gastos = obtener_gastos()
+
+    # Convertir fechas a tipo datetime
+    df_ingresos = pd.DataFrame(ingresos)
+    df_gastos = pd.DataFrame(gastos)
+
+    if not df_ingresos.empty:
+        df_ingresos["fecha"] = pd.to_datetime(df_ingresos["fecha"])
+        df_ingresos = df_ingresos[(df_ingresos["fecha"] >= fecha_inicio) & (df_ingresos["fecha"] <= fecha_fin)]
+        total_ingresos = df_ingresos["monto"].sum()
+    else:
+        total_ingresos = 0.0
+
+    if not df_gastos.empty:
+        df_gastos["fecha"] = pd.to_datetime(df_gastos["fecha"])
+        df_gastos = df_gastos[(df_gastos["fecha"] >= fecha_inicio) & (df_gastos["fecha"] <= fecha_fin)]
+        total_gastos = df_gastos["monto"].sum()
+    else:
+        total_gastos = 0.0
+
+    balance = total_ingresos - total_gastos
+
+    # Mostrar resultados
+    st.success(f"💰 Total de ingresos: ₡{total_ingresos:,.2f}")
+    st.error(f"💸 Total de gastos: ₡{total_gastos:,.2f}")
+    st.info(f"📘 Balance disponible: ₡{balance:,.2f}")
 
 # -------------------- OTRAS PESTAÑAS EN CONSTRUCCIÓN --------------------
-
-
-elif menu == "📊 Reporte General":
-    st.title("📊 Reporte General")
-    st.warning("Esta sección está en construcción.")
-
 elif menu == "📄 Exportar PDF":
     st.title("📄 Exportar reporte en PDF")
     st.warning("Esta sección está en construcción.")
