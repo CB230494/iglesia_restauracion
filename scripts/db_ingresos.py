@@ -58,3 +58,11 @@ def actualizar_gasto(id, fecha_date_obj, motivo, monto, observacion):
 def eliminar_gasto(id):
     supabase.table("gastos").delete().eq("id", id).execute()
 
+if __name__ == "__main__":
+    print("🔁 Probando conexión con Supabase...")
+    try:
+        data = obtener_ingresos()
+        print("✅ Conexión exitosa. Datos:", data)
+    except Exception as e:
+        print("❌ Error al conectar con Supabase:", e)
+
