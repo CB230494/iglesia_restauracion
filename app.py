@@ -289,11 +289,11 @@ elif menu == "Exportar PDF":
 
     if st.button("Generar PDF"):
         try:
-            # Consulta a la base de datos
+            # Obtener datos desde Supabase
             ingresos = supabase.table("ingresos").select("*").execute().data
             gastos = supabase.table("gastos").select("*").execute().data
 
-            # Filtrado
+            # Filtrar por rango de fechas
             ingresos_filtrados = [i for i in ingresos if fecha_inicio <= datetime.date.fromisoformat(i["fecha"]) <= fecha_fin]
             gastos_filtrados = [g for g in gastos if fecha_inicio <= datetime.date.fromisoformat(g["fecha"]) <= fecha_fin]
 
@@ -307,63 +307,83 @@ elif menu == "Exportar PDF":
             pdf.add_page()
             pdf.set_auto_page_break(auto=True, margin=15)
 
-            # --- PORTADA ---
-            pdf.set_font("Arial", 'B', 20)
+            # --- ENCABEZADO ---
+            pdf.set_font("Arial", 'B', 16)
             pdf.set_text_color(0, 51, 102)
-            pdf.cell(0, 60, "", ln=True)  # espacio
             pdf.cell(0, 10, "Iglesia Restauración", ln=True, align="C")
-            pdf.set_font("Arial", '', 16)
+            pdf.set_font("Arial", '', 14)
             pdf.cell(0, 10, "Informe Financiero", ln=True, align="C")
-            pdf.set_font("Arial", 'I', 12)
+            pdf.set_font("Arial", 'I', 11)
+            pdf.set_text_color(0)
             pdf.cell(0, 10, f"Período: {fecha_inicio} al {fecha_fin}", ln=True, align="C")
-            pdf.ln(10)
-            pdf.set_font("Arial", '', 11)
+            pdf.ln(8)
             pdf.multi_cell(0, 8, "Este informe fue solicitado por los pastores Jeannett Loaiciga Segura y Carlos Castro Campos.", align="C")
-            pdf.ln(20)
-            pdf.set_font("Arial", 'I', 10)
-            pdf.cell(0, 10, f"Generado el {datetime.date.today().strftime('%d/%m/%Y')}", ln=True, align="C")
+            pdf.ln(5)
 
-            # Salto de página
-            pdf.add_page()
-
-            # --- INGRESOS ---
-            pdf.set_font("Arial", 'B', 14)
+            # --- TABLA DE INGRESOS ---
             pdf.set_fill_color(220, 235, 255)
+            pdf.set_font("Arial", 'B', 12)
             pdf.cell(0, 10, "Ingresos", ln=True, fill=True)
-            pdf.set_font("Arial", '', 11)
+            pdf.set_font("Arial", 'B', 10)
+            pdf.set_fill_color(200, 220, 255)
+            pdf.cell(35, 8, "Fecha", border=1, fill=True)
+            pdf.cell(40, 8, "Tipo", border=1, fill=True)
+            pdf.cell(80, 8, "Detalle", border=1, fill=True)
+            pdf.cell(30, 8, "Monto (CRC)", border=1, ln=True, fill=True)
+
+            pdf.set_font("Arial", '', 10)
             for i in ingresos_filtrados:
                 fecha = i["fecha"]
                 tipo = i.get("tipo", "Sin tipo") or "Sin tipo"
+                detalle = i.get("detalle", "") or ""
                 monto = i["monto"]
-                detalle = i.get("detalle", "Sin detalle") or "Sin detalle"
-                pdf.multi_cell(0, 8, f"{fecha}: {tipo} - CRC {monto:,.2f} - {detalle}", border=0)
-            pdf.set_font("Arial", 'B', 12)
-            pdf.cell(0, 10, f"Total ingresos: CRC {total_ingresos:,.2f}", ln=True)
+                pdf.cell(35, 8, fecha, border=1)
+                pdf.cell(40, 8, tipo[:15], border=1)
+                pdf.cell(80, 8, detalle[:40], border=1)
+                pdf.cell(30, 8, f"{monto:,.2f}", border=1, ln=True)
+
+            pdf.set_font("Arial", 'B', 11)
+            pdf.cell(155, 10, "Total ingresos", border=1)
+            pdf.cell(30, 10, f"{total_ingresos:,.2f}", border=1, ln=True)
             pdf.ln(10)
 
-            # --- GASTOS ---
-            pdf.set_font("Arial", 'B', 14)
+            # --- TABLA DE GASTOS ---
             pdf.set_fill_color(255, 230, 230)
+            pdf.set_font("Arial", 'B', 12)
             pdf.cell(0, 10, "Gastos", ln=True, fill=True)
-            pdf.set_font("Arial", '', 11)
+            pdf.set_font("Arial", 'B', 10)
+            pdf.set_fill_color(255, 210, 210)
+            pdf.cell(35, 8, "Fecha", border=1, fill=True)
+            pdf.cell(40, 8, "Tipo", border=1, fill=True)
+            pdf.cell(80, 8, "Detalle", border=1, fill=True)
+            pdf.cell(30, 8, "Monto (CRC)", border=1, ln=True, fill=True)
+
+            pdf.set_font("Arial", '', 10)
             for g in gastos_filtrados:
                 fecha = g["fecha"]
                 tipo = g.get("tipo", "Sin tipo") or "Sin tipo"
+                detalle = g.get("detalle", "") or ""
                 monto = g["monto"]
-                detalle = g.get("detalle", "Sin detalle") or "Sin detalle"
-                pdf.multi_cell(0, 8, f"{fecha}: {tipo} - CRC {monto:,.2f} - {detalle}", border=0)
-            pdf.set_font("Arial", 'B', 12)
-            pdf.cell(0, 10, f"Total gastos: CRC {total_gastos:,.2f}", ln=True)
+                pdf.cell(35, 8, fecha, border=1)
+                pdf.cell(40, 8, tipo[:15], border=1)
+                pdf.cell(80, 8, detalle[:40], border=1)
+                pdf.cell(30, 8, f"{monto:,.2f}", border=1, ln=True)
+
+            pdf.set_font("Arial", 'B', 11)
+            pdf.cell(155, 10, "Total gastos", border=1)
+            pdf.cell(30, 10, f"{total_gastos:,.2f}", border=1, ln=True)
             pdf.ln(10)
 
             # --- BALANCE FINAL ---
             pdf.set_font("Arial", 'B', 13)
-            pdf.set_text_color(0, 100, 0)
-            pdf.cell(0, 10, f"Balance final: CRC {balance:,.2f}", ln=True)
-            pdf.set_text_color(0, 0, 0)
-            pdf.ln(15)
+            if balance >= 0:
+                pdf.set_text_color(0, 150, 0)
+            else:
+                pdf.set_text_color(200, 0, 0)
+            pdf.cell(0, 12, f"Balance final: CRC {balance:,.2f}", ln=True)
+            pdf.set_text_color(0)
 
-            # --- FIRMA SIMBÓLICA ---
+            pdf.ln(20)
             pdf.set_font("Arial", 'I', 11)
             pdf.cell(0, 10, "_____________________________", ln=True)
             pdf.cell(0, 8, "Firma Pastoral o Coordinación", ln=True)
@@ -374,12 +394,13 @@ elif menu == "Exportar PDF":
             pdf.set_text_color(100)
             pdf.cell(0, 10, "Sistema Iglesia Restauración • Informe generado automáticamente", align="C")
 
-            # Exportar PDF
+            # Descarga
             pdf_output = pdf.output(dest='S').encode('latin1')
             st.download_button("📄 Descargar Informe PDF", data=pdf_output, file_name="informe_financiero.pdf", mime='application/pdf')
 
         except Exception as e:
             st.error(f"❌ Error al generar el PDF: {e}")
+
 
 
 
