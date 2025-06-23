@@ -273,51 +273,45 @@ elif menu == "📊 Reporte General":
 
 
 # -------------------- PESTAÑA: Generador de PDF --------------------
-elif menu == "📄 Exportar PDF":
-    st.markdown("## 🧾 Exportar PDF del Informe Financiero")
-    st.write("Genera un PDF con el resumen de ingresos y gastos para un período seleccionado.")
+elif menu == "📄 Prueba PDF":
+    st.title("🧪 Prueba de generación de PDF")
 
-    col1, col2 = st.columns(2)
-    fecha_inicio = col1.date_input("📅 Fecha de inicio", value=datetime(2025, 1, 1).date())
-    fecha_fin = col2.date_input("📅 Fecha de fin", value=datetime.now().date())
+    # Rango de fechas simulado
+    fecha_inicio = datetime(2025, 1, 1).date()
+    fecha_fin = datetime(2025, 6, 30).date()
 
-    if st.button("📤 Generar PDF"):
-        try:
-            df_ingresos = obtener_ingresos()
-            df_gastos = obtener_gastos()
+    # Datos simulados
+    ingresos_data = [
+        {"fecha": "2025-06-23", "concepto": "Cocina", "monto": 2800, "observacion": ""},
+        {"fecha": "2025-06-23", "concepto": "Diezmo", "monto": 10000, "observacion": "De Tali"}
+    ]
+    gastos_data = [
+        {"fecha": "2025-06-23", "concepto": "Ferretería", "monto": 1000, "observacion": "NADA"},
+        {"fecha": "2025-06-23", "concepto": "Ninguno", "monto": 500, "observacion": ""}
+    ]
 
-            df_ingresos["fecha"] = pd.to_datetime(df_ingresos["fecha"])
-            df_gastos["fecha"] = pd.to_datetime(df_gastos["fecha"])
+    st.write("Se utilizarán datos de prueba para la generación del informe.")
+    if st.button("📤 Generar PDF de prueba"):
+        from exportador_pdf import PDF
 
-            ingresos_filtrados = df_ingresos[
-                (df_ingresos["fecha"] >= pd.to_datetime(fecha_inicio)) &
-                (df_ingresos["fecha"] <= pd.to_datetime(fecha_fin))
-            ]
+        pdf = PDF()
+        pdf.add_page()
 
-            gastos_filtrados = df_gastos[
-                (df_gastos["fecha"] >= pd.to_datetime(fecha_inicio)) &
-                (df_gastos["fecha"] <= pd.to_datetime(fecha_fin))
-            ]
+        leyenda = f"Este informe fue solicitado por los pastores Jeannett Loaiciga Segura y Carlos Castro Campos\nPeríodo: {fecha_inicio} a {fecha_fin}"
+        pdf.add_legend(leyenda)
 
-            pdf = PDF()
-            pdf.add_page()
-            pdf.add_legend("Jeannett Loaiciga Segura y Carlos Castro Campos", fecha_inicio.strftime('%Y-%m-%d'), fecha_fin.strftime('%Y-%m-%d'))
-            pdf.add_table("Ingresos", ingresos_filtrados)
-            pdf.add_table("Gastos", gastos_filtrados)
+        pdf.add_table("Ingresos en el período", ingresos_data)
+        pdf.add_table("Gastos en el período", gastos_data)
 
-            buffer = io.BytesIO()
-            pdf.output(buffer)
-            buffer.seek(0)
+        pdf_output = pdf.output(dest="S").encode("latin-1")
+        st.success("PDF generado con éxito.")
 
-            st.download_button(
-                label="📥 Descargar Informe PDF",
-                data=buffer,
-                file_name="informe_financiero.pdf",
-                mime="application/pdf"
-            )
-
-        except Exception as e:
-            st.error(f"❌ Error al generar el PDF: {e}")
+        st.download_button(
+            label="📥 Descargar PDF de prueba",
+            data=pdf_output,
+            file_name="informe_financiero_prueba.pdf",
+            mime="application/pdf"
+        )
 
 
 
