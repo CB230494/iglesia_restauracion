@@ -22,71 +22,75 @@ from db_ingresos import insertar_ingreso, obtener_ingresos, eliminar_ingreso, ac
 if menu == "📥 Registro de Ingresos":
     st.title("📥 Registro de Ingresos")
 
-    # ================= FORMULARIO DE AGREGAR O EDITAR =================
-    st.subheader("Agregar / Editar ingreso")
+    # ------------------------ FORMULARIO ------------------------
+    st.subheader("Agregar o editar ingreso")
 
     if "modo_edicion" not in st.session_state:
         st.session_state.modo_edicion = False
     if "datos_edicion" not in st.session_state:
         st.session_state.datos_edicion = {}
 
-    if st.session_state.modo_edicion:
-        datos = st.session_state.datos_edicion
-        st.info(f"✏️ Editando ingreso ID {datos['id']}")
-    else:
-        datos = {"fecha": None, "concepto": "Diezmo", "monto": 0.0, "observacion": ""}
+    datos = st.session_state.datos_edicion if st.session_state.modo_edicion else {
+        "fecha": None,
+        "concepto": "Diezmo",
+        "monto": 0.0,
+        "observacion": ""
+    }
 
-    with st.form("formulario_ingreso"):
+    with st.form("form_ingreso"):
         fecha = st.date_input("Fecha", value=pd.to_datetime(datos["fecha"]) if datos["fecha"] else pd.to_datetime("today"))
-        concepto = st.selectbox("Concepto", ["Diezmo", "Ofrenda", "Cocina", "Otro"], index=["Diezmo", "Ofrenda", "Cocina", "Otro"].index(datos["concepto"]) if datos["concepto"] else 0)
+        concepto = st.selectbox("Concepto", ["Diezmo", "Ofrenda", "Cocina", "Otro"], index=["Diezmo", "Ofrenda", "Cocina", "Otro"].index(datos["concepto"]))
         monto = st.number_input("Monto (₡)", min_value=0.0, value=float(datos["monto"]), step=1000.0, format="%.2f")
         observacion = st.text_area("Observación (opcional)", value=datos["observacion"])
-        enviar = st.form_submit_button("Guardar")
+        guardar = st.form_submit_button("Guardar")
 
-        if enviar:
+        if guardar:
             if st.session_state.modo_edicion:
-                resultado = actualizar_ingreso(datos["id"], str(fecha), concepto, monto, observacion)
-                if resultado.data:
+                res = actualizar_ingreso(datos["id"], str(fecha), concepto, monto, observacion)
+                if res.data:
                     st.success("✅ Ingreso actualizado")
                 else:
-                    st.error("❌ Error al actualizar")
+                    st.error("❌ No se pudo actualizar")
                 st.session_state.modo_edicion = False
                 st.session_state.datos_edicion = {}
-                st.experimental_rerun()
+                st.rerun()
             else:
-                resultado = insertar_ingreso(str(fecha), concepto, monto, observacion)
-                if resultado.data:
+                res = insertar_ingreso(str(fecha), concepto, monto, observacion)
+                if res.data:
                     st.success("✅ Ingreso registrado")
-                    st.experimental_rerun()
+                    st.rerun()
                 else:
                     st.error("❌ Error al registrar")
 
-    # ================= TABLA CON OPCIONES DE EDITAR Y ELIMINAR =================
+    # ------------------------ LISTADO DE INGRESOS ------------------------
     st.subheader("📋 Ingresos registrados")
     ingresos = obtener_ingresos()
 
     if ingresos:
         for ingreso in ingresos:
-            col1, col2, col3, col4, col5, col6 = st.columns([1, 2, 2, 2, 2, 1])
-            col1.write(f"ID: {ingreso['id']}")
-            col2.write(ingreso["fecha"])
-            col3.write(ingreso["concepto"])
-            col4.write(f"₡{ingreso['monto']:,.2f}")
-            col5.write(ingreso["observacion"] or "")
-            editar = col6.button("✏️", key=f"editar_{ingreso['id']}")
-            eliminar = col6.button("🗑️", key=f"eliminar_{ingreso['id']}")
+            with st.container():
+                cols = st.columns([1, 2, 2, 2, 3, 1, 1])
+                cols[0].markdown(f"**ID:** {ingreso['id']}")
+                cols[1].markdown(f"📅 {ingreso['fecha']}")
+                cols[2].markdown(f"🧾 {ingreso['concepto']}")
+                cols[3].markdown(f"💰 ₡{ingreso['monto']:,.2f}")
+                cols[4].markdown(f"📝 {ingreso['observacion'] or '—'}")
 
-            if editar:
-                st.session_state.modo_edicion = True
-                st.session_state.datos_edicion = ingreso
-                st.experimental_rerun()
+                editar = cols[5].button("✏️", key=f"editar_{ingreso['id']}")
+                eliminar = cols[6].button("🗑️", key=f"eliminar_{ingreso['id']}")
 
-            if eliminar:
-                eliminar_ingreso(ingreso["id"])
-                st.success(f"✅ Ingreso ID {ingreso['id']} eliminado")
-                st.experimental_rerun()
+                if editar:
+                    st.session_state.modo_edicion = True
+                    st.session_state.datos_edicion = ingreso
+                    st.rerun()
+
+                if eliminar:
+                    eliminar_ingreso(ingreso["id"])
+                    st.success(f"Ingreso ID {ingreso['id']} eliminado")
+                    st.rerun()
     else:
         st.info("No hay ingresos registrados.")
+
 
 
 # =================== PESTAÑA 2: REGISTRO DE GASTOS =================== #
