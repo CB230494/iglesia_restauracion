@@ -215,43 +215,50 @@ elif menu == "💸 Registro de Gastos":
 
 # -------------------- PESTAÑA: BALANCE GENERAL --------------------
 elif menu == "📊 Reporte General":
-    st.markdown("## 📊 REPORTE GENERAL")
+    st.title("📊 REPORTE GENERAL")
     st.markdown("Resumen financiero entre ingresos y gastos registrados, con filtro por rango de fechas.")
 
-    # Filtro de fechas
+    # Filtros de fecha
     col1, col2 = st.columns(2)
     with col1:
-        fecha_inicio = st.date_input("📅 Fecha de inicio", value=pd.to_datetime("2025-01-01"))
+        fecha_inicio = st.date_input("📅 Fecha de inicio", pd.to_datetime("2025-01-01"))
     with col2:
-        fecha_fin = st.date_input("📅 Fecha de fin", value=pd.to_datetime("today"))
+        fecha_fin = st.date_input("📅 Fecha de fin", pd.to_datetime("today"))
 
     # Obtener datos
     ingresos = obtener_ingresos()
     gastos = obtener_gastos()
 
+    # Convertir a DataFrame
     df_ingresos = pd.DataFrame(ingresos)
     df_gastos = pd.DataFrame(gastos)
 
+    # Convertir columna fecha a datetime
     if not df_ingresos.empty:
         df_ingresos["fecha"] = pd.to_datetime(df_ingresos["fecha"])
         df_ingresos = df_ingresos[(df_ingresos["fecha"] >= fecha_inicio) & (df_ingresos["fecha"] <= fecha_fin)]
-        total_ingresos = df_ingresos["monto"].sum()
-    else:
-        total_ingresos = 0.0
 
     if not df_gastos.empty:
         df_gastos["fecha"] = pd.to_datetime(df_gastos["fecha"])
         df_gastos = df_gastos[(df_gastos["fecha"] >= fecha_inicio) & (df_gastos["fecha"] <= fecha_fin)]
-        total_gastos = df_gastos["monto"].sum()
-    else:
-        total_gastos = 0.0
 
+    # Mostrar resumen
+    total_ingresos = df_ingresos["monto"].sum() if not df_ingresos.empty else 0
+    total_gastos = df_gastos["monto"].sum() if not df_gastos.empty else 0
     balance = total_ingresos - total_gastos
 
-    # Mostrar totales
-    st.success(f"💰 Total de ingresos: ₡{total_ingresos:,.2f}")
-    st.error(f"💸 Total de gastos: ₡{total_gastos:,.2f}")
-    st.info(f"📘 Balance disponible: ₡{balance:,.2f}")
+    st.markdown("### 💰 Resumen del período seleccionado:")
+    st.write(f"**Total de ingresos:** ₡{total_ingresos:,.2f}")
+    st.write(f"**Total de gastos:** ₡{total_gastos:,.2f}")
+    st.write(f"**Balance final:** ₡{balance:,.2f}")
+
+    # Mostrar tablas
+    st.markdown("### 📥 Ingresos en el período")
+    st.dataframe(df_ingresos, use_container_width=True)
+
+    st.markdown("### 📤 Gastos en el período")
+    st.dataframe(df_gastos, use_container_width=True)
+
 
 
 # -------------------- OTRAS PESTAÑAS EN CONSTRUCCIÓN --------------------
