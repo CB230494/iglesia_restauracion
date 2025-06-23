@@ -241,20 +241,24 @@ elif menu == "📊 Reporte General":
     if not df_ingresos.empty:
         df_ingresos["fecha"] = pd.to_datetime(df_ingresos["fecha"])
         df_ingresos = df_ingresos[(df_ingresos["fecha"] >= fecha_inicio) & (df_ingresos["fecha"] <= fecha_fin)]
+        df_ingresos["fecha"] = df_ingresos["fecha"].dt.strftime("%d/%m/%Y")  # Mostrar fecha sin hora
+        df_ingresos["monto"] = df_ingresos["monto"].apply(lambda x: f"₡{x:,.2f}".replace(",", "X").replace(".", ",").replace("X", "."))
 
     if not df_gastos.empty:
         df_gastos["fecha"] = pd.to_datetime(df_gastos["fecha"])
         df_gastos = df_gastos[(df_gastos["fecha"] >= fecha_inicio) & (df_gastos["fecha"] <= fecha_fin)]
+        df_gastos["fecha"] = df_gastos["fecha"].dt.strftime("%d/%m/%Y")  # Mostrar fecha sin hora
+        df_gastos["monto"] = df_gastos["monto"].apply(lambda x: f"₡{x:,.2f}".replace(",", "X").replace(".", ",").replace("X", "."))
 
     # Mostrar resumen
-    total_ingresos = df_ingresos["monto"].sum() if not df_ingresos.empty else 0
-    total_gastos = df_gastos["monto"].sum() if not df_gastos.empty else 0
+    total_ingresos = pd.to_numeric(df_ingresos["monto"].str.replace("₡", "").str.replace(".", "").str.replace(",", "."), errors="coerce").sum() if not df_ingresos.empty else 0
+    total_gastos = pd.to_numeric(df_gastos["monto"].str.replace("₡", "").str.replace(".", "").str.replace(",", "."), errors="coerce").sum() if not df_gastos.empty else 0
     balance = total_ingresos - total_gastos
 
     st.markdown("### 💰 Resumen del período seleccionado:")
-    st.write(f"**Total de ingresos:** ₡{total_ingresos:,.2f}")
-    st.write(f"**Total de gastos:** ₡{total_gastos:,.2f}")
-    st.write(f"**Balance final:** ₡{balance:,.2f}")
+    st.write(f"**Total de ingresos:** ₡{total_ingresos:,.2f}".replace(",", "X").replace(".", ",").replace("X", "."))
+    st.write(f"**Total de gastos:** ₡{total_gastos:,.2f}".replace(",", "X").replace(".", ",").replace("X", "."))
+    st.write(f"**Balance final:** ₡{balance:,.2f}".replace(",", "X").replace(".", ",").replace("X", "."))
 
     # Mostrar tablas
     st.markdown("### 📥 Ingresos en el período")
