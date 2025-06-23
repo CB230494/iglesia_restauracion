@@ -1,12 +1,17 @@
 from supabase_client import supabase
 
 def insertar_gasto(fecha, concepto, monto, observacion=""):
+    # Validar campos obligatorios
+    if not fecha or not concepto or monto is None:
+        raise ValueError("❌ Todos los campos obligatorios deben completarse.")
+
     data = {
-        "fecha": fecha.isoformat(),  # ✅ Convertir datetime.date a string 'YYYY-MM-DD'
+        "fecha": fecha.isoformat(),
         "concepto": concepto,
         "monto": monto,
-        "observacion": observacion
+        "observacion": observacion or None
     }
+
     response = supabase.table("gastos").insert(data).execute()
     return response
 
@@ -19,11 +24,15 @@ def eliminar_gasto(id):
     return response
 
 def actualizar_gasto(id, fecha, concepto, monto, observacion=""):
+    if not fecha or not concepto or monto is None:
+        raise ValueError("❌ Todos los campos obligatorios deben completarse.")
+
     data = {
-        "fecha": fecha.isoformat(),  # ✅ También aquí
+        "fecha": fecha.isoformat(),
         "concepto": concepto,
         "monto": monto,
-        "observacion": observacion
+        "observacion": observacion or None
     }
+
     response = supabase.table("gastos").update(data).eq("id", id).execute()
     return response
