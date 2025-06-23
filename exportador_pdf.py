@@ -1,63 +1,51 @@
 from fpdf import FPDF
-import re
+from datetime import datetime
 
 class PDF(FPDF):
     def header(self):
         self.set_font('Arial', 'B', 12)
-        self.set_text_color(255, 255, 255)  # Blanco
-        self.set_fill_color(0, 102, 204)    # Azul
-        self.cell(0, 10, "INFORME FINANCIERO - IGLESIA RESTAURACIÓN", 0, 1, 'C', fill=True)
-        self.ln(5)
+        self.set_text_color(0, 51, 102)
+        self.cell(0, 10, 'Informe Financiero - Iglesia Restauración Colonia Carvajal', ln=True, align='C')
+        self.ln(10)
 
     def footer(self):
         self.set_y(-15)
         self.set_font('Arial', 'I', 8)
-        self.set_text_color(100, 100, 100)
-        self.cell(0, 10, f'Página {self.page_no()}', 0, 0, 'C')
-
-    def limpiar_texto(self, texto):
-        emoji_pattern = re.compile("["
-            u"\U0001F600-\U0001F64F"
-            u"\U0001F300-\U0001F5FF"
-            u"\U0001F680-\U0001F6FF"
-            u"\U0001F1E0-\U0001F1FF"
-            u"\U00002700-\U000027BF"
-            u"\U0001F900-\U0001F9FF"
-            "]+", flags=re.UNICODE)
-        texto_limpio = emoji_pattern.sub(r'', str(texto))
-        return texto_limpio.encode("latin-1", "ignore").decode("latin-1")
+        self.set_text_color(128)
+        self.cell(0, 10, f'Página {self.page_no()} - Sistema de Control Financiero', align='C')
 
     def add_legend(self, fecha_inicio, fecha_fin):
-        self.set_font('Arial', '', 11)
+        self.set_font('Arial', '', 10)
         self.set_text_color(0)
-        self.set_fill_color(255, 153, 51)  # Naranja
-        self.cell(0, 10, "Este informe fue solicitado por los pastores Jeannett Loaiciga Segura y Carlos Castro Campos", 0, 1, 'L', fill=True)
-        self.cell(0, 10, f"Período del informe: {fecha_inicio.strftime('%d/%m/%Y')} al {fecha_fin.strftime('%d/%m/%Y')}", 0, 1, 'L')
+        self.multi_cell(0, 8, f"Este informe fue solicitado por los pastores Jeannett Loaiciga Segura y Carlos Castro Campos\nPeríodo del informe: {fecha_inicio.strftime('%d/%m/%Y')} al {fecha_fin.strftime('%d/%m/%Y')}")
         self.ln(5)
 
     def add_table(self, titulo, data):
-        self.set_font('Arial', 'B', 12)
-        self.set_text_color(0, 102, 204)
-        self.cell(0, 10, self.limpiar_texto(titulo), 0, 1)
+        self.set_font('Arial', 'B', 11)
+        self.set_text_color(0)
+        self.cell(0, 10, titulo, ln=True)
+        self.set_font('Arial', '', 9)
 
         if not data:
-            self.set_font('Arial', '', 10)
-            self.set_text_color(150)
-            self.cell(0, 10, "No hay registros disponibles.", 0, 1)
+            self.cell(0, 8, "No hay registros disponibles en este período.", ln=True)
+            self.ln(5)
             return
 
-        columnas = list(data[0].keys())
-        self.set_font('Arial', 'B', 10)
-        self.set_text_color(0)
-        for col in columnas:
-            self.cell(40, 8, self.limpiar_texto(col), 1)
+        headers = ["Fecha", "Concepto", "Monto", "Observación"]
+        col_widths = [30, 50, 30, 80]
+
+        for i, header in enumerate(headers):
+            self.set_fill_color(200, 200, 200)
+            self.cell(col_widths[i], 8, header, 1, 0, 'C', True)
         self.ln()
 
-        self.set_font('Arial', '', 10)
         for row in data:
-            for col in columnas:
-                valor = self.limpiar_texto(row[col])
-                self.cell(40, 8, valor, 1)
+            self.cell(col_widths[0], 8, row["fecha"][:10], 1)
+            self.cell(col_widths[1], 8, row["concepto"], 1)
+            monto_str = f"CRC {row['monto']:,.2f}".replace(",", "X").replace(".", ",").replace("X", ".")
+            self.cell(col_widths[2], 8, monto_str, 1)
+            obs = row["observacion"] if row["observacion"] else "—"
+            self.cell(col_widths[3], 8, obs[:60], 1)
             self.ln()
         self.ln(5)
 
@@ -70,11 +58,14 @@ class PDF(FPDF):
         self.cell(0, 10, "Resumen Financiero:", 0, 1)
 
         self.set_font('Arial', '', 10)
-        self.cell(0, 8, f"Total Ingresos: ₡{total_ingresos:,.2f}".replace(",", "X").replace(".", ",").replace("X", "."), 0, 1)
-        self.cell(0, 8, f"Total Gastos: ₡{total_gastos:,.2f}".replace(",", "X").replace(".", ",").replace("X", "."), 0, 1)
+        ingresos_str = f"CRC {total_ingresos:,.2f}".replace(",", "X").replace(".", ",").replace("X", ".")
+        gastos_str = f"CRC {total_gastos:,.2f}".replace(",", "X").replace(".", ",").replace("X", ".")
+        balance_str = f"CRC {balance:,.2f}".replace(",", "X").replace(".", ",").replace("X", ".")
 
+        self.cell(0, 8, f"Total Ingresos: {ingresos_str}", 0, 1)
+        self.cell(0, 8, f"Total Gastos: {gastos_str}", 0, 1)
         self.set_text_color(*color)
-        self.cell(0, 8, f"Balance Final: ₡{balance:,.2f}".replace(",", "X").replace(".", ",").replace("X", "."), 0, 1)
+        self.cell(0, 8, f"Balance Final: {balance_str}", 0, 1)
 
 
 
