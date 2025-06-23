@@ -321,7 +321,6 @@ elif menu == "📄 Exportar PDF":
 
             pdf = PDF()
             pdf.add_page()
-            pdf.add_legend(fecha_inicio, fecha_fin)
             pdf.add_table("Ingresos en el período", ingresos_filtrados.to_dict(orient="records"))
             pdf.add_table("Gastos en el período", gastos_filtrados.to_dict(orient="records"))
             pdf.add_summary(total_ingresos, total_gastos)
