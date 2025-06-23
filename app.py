@@ -224,15 +224,13 @@ elif menu == "📊 Reporte General":
     with col2:
         fecha_fin = st.date_input("📅 Fecha de fin", pd.to_datetime("today").date())
 
-    # Intentar obtener los datos
     try:
         ingresos = obtener_ingresos()
         gastos = obtener_gastos()
 
-        df_ingresos = pd.DataFrame(ingresos.data if ingresos and ingresos.data else [])
-        df_gastos = pd.DataFrame(gastos.data if gastos and gastos.data else [])
+        df_ingresos = pd.DataFrame(ingresos.data) if ingresos and ingresos.data else pd.DataFrame()
+        df_gastos = pd.DataFrame(gastos.data) if gastos and gastos.data else pd.DataFrame()
 
-        # Asegurar que las fechas sean tipo datetime
         if not df_ingresos.empty:
             df_ingresos["fecha"] = pd.to_datetime(df_ingresos["fecha"]).dt.date
             df_ingresos = df_ingresos[(df_ingresos["fecha"] >= fecha_inicio) & (df_ingresos["fecha"] <= fecha_fin)]
@@ -252,22 +250,27 @@ elif menu == "📊 Reporte General":
         st.subheader("💸 Gastos en el período")
         st.dataframe(df_gastos, use_container_width=True)
 
-        # Cálculo de totales (usar valores sin formato)
+        # Cálculo numérico del balance
         total_ingresos = sum([float(i["monto"]) for i in ingresos.data if fecha_inicio <= pd.to_datetime(i["fecha"]).date() <= fecha_fin])
         total_gastos = sum([float(i["monto"]) for i in gastos.data if fecha_inicio <= pd.to_datetime(i["fecha"]).date() <= fecha_fin])
         balance_final = total_ingresos - total_gastos
 
         color = "green" if balance_final >= 0 else "red"
 
-        # Mostrar resumen
+        # Mostrar resumen con color
         st.markdown("---")
         st.markdown("### 🪙 Resumen del período seleccionado:")
         st.markdown(f"**Total de ingresos:** ₡{total_ingresos:,.2f}".replace(",", "X").replace(".", ",").replace("X", "."))
         st.markdown(f"**Total de gastos:** ₡{total_gastos:,.2f}".replace(",", "X").replace(".", ",").replace("X", "."))
-        st.markdown(f"<strong>Balance final:</strong> <span style='color:{color};'>₡{balance_final:,.2f}</span>".replace(",", "X").replace(".", ",").replace("X", "."), unsafe_allow_html=True)
+        st.markdown(
+            f"<strong>Balance final:</strong> <span style='color:{color}; font-weight:bold;'>₡{balance_final:,.2f}</span>"
+            .replace(",", "X").replace(".", ",").replace("X", "."),
+            unsafe_allow_html=True
+        )
 
     except Exception as e:
         st.error("⚠️ Error al obtener o procesar los datos. Verifica la conexión con Supabase o el formato de datos.")
+
 
 
 
