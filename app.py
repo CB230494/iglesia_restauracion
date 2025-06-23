@@ -274,64 +274,50 @@ elif menu == "📊 Reporte General":
 
 # -------------------- PESTAÑA: Generador de PDF --------------------
 elif menu == "📄 Exportar PDF":
-    from exportador_pdf import PDF
-    from datetime import datetime
-    import re
-
-    st.title("📄 Exportar PDF del Informe Financiero")
-    st.write("Genera un PDF con el resumen de ingresos y gastos para un período seleccionado.")
-
-    # Función para eliminar emojis y caracteres no admitidos
-    def eliminar_emojis(texto):
-        emoji_pattern = re.compile("["
-                                   u"\U0001F600-\U0001F64F"
-                                   u"\U0001F300-\U0001F5FF"
-                                   u"\U0001F680-\U0001F6FF"
-                                   u"\U0001F1E0-\U0001F1FF"
-                                   u"\U00002700-\U000027BF"
-                                   u"\U0001F900-\U0001F9FF"
-                                   "]+", flags=re.UNICODE)
-        return emoji_pattern.sub(r'', texto)
+    st.markdown("## 📄 Exportar PDF del Informe Financiero")
+    st.markdown("Genera un PDF con el resumen de ingresos y gastos para un período seleccionado.")
 
     col1, col2 = st.columns(2)
-    fecha_inicio = col1.date_input("📅 Fecha de inicio", value=datetime(2025, 1, 1).date())
-    fecha_fin = col2.date_input("📅 Fecha de fin", value=datetime.today().date())
+    with col1:
+        fecha_inicio = st.date_input("📅 Fecha de inicio", value=datetime(2025, 1, 1))
+    with col2:
+        fecha_fin = st.date_input("📅 Fecha de fin", value=datetime(2025, 6, 30))
 
-    if st.button("📤 Generar PDF"):
+    if st.button("📥 Generar PDF"):
         try:
+            # Convertimos a pandas datetime64 para evitar errores de comparación
+            fecha_inicio = pd.to_datetime(fecha_inicio)
+            fecha_fin = pd.to_datetime(fecha_fin)
+
             ingresos = obtener_ingresos()
             gastos = obtener_gastos()
 
-            df_ingresos = pd.DataFrame(ingresos).fillna("")
-            df_gastos = pd.DataFrame(gastos).fillna("")
+            ingresos_filtrados = ingresos[
+                (ingresos["fecha"] >= fecha_inicio) & (ingresos["fecha"] <= fecha_fin)
+            ]
+            gastos_filtrados = gastos[
+                (gastos["fecha"] >= fecha_inicio) & (gastos["fecha"] <= fecha_fin)
+            ]
 
-            df_ingresos["fecha"] = pd.to_datetime(df_ingresos["fecha"]).dt.date
-            df_gastos["fecha"] = pd.to_datetime(df_gastos["fecha"]).dt.date
-
-            # Filtrado por fechas
-            ingresos_filtrados = df_ingresos[(df_ingresos["fecha"] >= fecha_inicio) & (df_ingresos["fecha"] <= fecha_fin)]
-            gastos_filtrados = df_gastos[(df_gastos["fecha"] >= fecha_inicio) & (df_gastos["fecha"] <= fecha_fin)]
-
-            # Eliminar emojis en observaciones
-            ingresos_filtrados["observacion"] = ingresos_filtrados["observacion"].apply(eliminar_emojis)
-            gastos_filtrados["observacion"] = gastos_filtrados["observacion"].apply(eliminar_emojis)
-
-            total_ingresos = ingresos_filtrados["monto"].sum()
-            total_gastos = gastos_filtrados["monto"].sum()
-
+            from exportador_pdf import PDF
             pdf = PDF()
-            pdf.add_page()
-            pdf.add_table("Ingresos en el período", ingresos_filtrados.to_dict(orient="records"))
-            pdf.add_table("Gastos en el período", gastos_filtrados.to_dict(orient="records"))
-            pdf.add_summary(total_ingresos, total_gastos)
+            pdf.generate_report(
+                ingresos_filtrados,
+                gastos_filtrados,
+                fecha_inicio,
+                fecha_fin
+            )
 
-            pdf_path = "/mnt/data/informe_financiero.pdf"
-            pdf.output(pdf_path)
+            with open("informe_financiero.pdf", "rb") as f:
+                st.download_button(
+                    label="📄 Descargar PDF",
+                    data=f,
+                    file_name="informe_financiero.pdf",
+                    mime="application/pdf"
+                )
 
-            st.success("✅ Informe PDF generado correctamente.")
-            st.download_button("📥 Descargar PDF", data=open(pdf_path, "rb"), file_name="informe_financiero.pdf")
         except Exception as e:
-            st.error(f"❌ Error al generar el PDF: {e}")
+            st.error(f"❌ Error al generar el PDF: {str(e)}")
 
 
 
