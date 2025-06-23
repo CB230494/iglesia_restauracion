@@ -318,7 +318,7 @@ elif menu == "📄 Exportar PDF":
             pdf.set_text_color(0)
             pdf.ln(5)
 
-            # Descripción inicial
+            # Texto institucional
             pdf.set_font("Arial", "", 11)
             pdf.multi_cell(0, 10, "Este informe fue solicitado por los pastores Jeannett Loaiciga Segura y Carlos Castro Campos", align="L")
             pdf.ln(3)
@@ -338,9 +338,9 @@ elif menu == "📄 Exportar PDF":
             if ingresos_filtrados:
                 for i in ingresos_filtrados:
                     fecha = i.get("fecha", "Sin fecha")
-                    tipo = i.get("tipo") or "Sin tipo"
+                    tipo = i.get("concepto") or "Sin tipo"
                     monto = i.get("monto") or 0.0
-                    detalle = i.get("detalle") or "Sin detalle"
+                    detalle = i.get("observacion") or "Sin detalle"
                     pdf.multi_cell(0, 8, f"{fecha}: {tipo} - CRC {monto:,.2f} - {detalle}", border=1)
             else:
                 pdf.cell(0, 10, "No se registraron ingresos en este período.", ln=True)
@@ -361,9 +361,9 @@ elif menu == "📄 Exportar PDF":
             if gastos_filtrados:
                 for g in gastos_filtrados:
                     fecha = g.get("fecha", "Sin fecha")
-                    tipo = g.get("tipo") or "Sin tipo"
+                    tipo = g.get("concepto") or "Sin tipo"
                     monto = g.get("monto") or 0.0
-                    detalle = g.get("detalle") or "Sin detalle"
+                    detalle = g.get("observacion") or "Sin detalle"
                     pdf.multi_cell(0, 8, f"{fecha}: {tipo} - CRC {monto:,.2f} - {detalle}", border=1)
             else:
                 pdf.cell(0, 10, "No se registraron gastos en este período.", ln=True)
@@ -381,7 +381,7 @@ elif menu == "📄 Exportar PDF":
             pdf.ln(20)
             pdf.set_font("Arial", "", 11)
             pdf.cell(80, 10, "Firma Pastora Jeannett Loaiciga Segura", ln=0, align="C")
-            pdf.cell(30, 10, "", ln=0)  # Espacio en blanco
+            pdf.cell(30, 10, "", ln=0)
             pdf.cell(80, 10, "Firma Pastor Carlos Castro Campos", ln=1, align="C")
             pdf.cell(80, 10, "______________________________", ln=0, align="C")
             pdf.cell(30, 10, "", ln=0)
@@ -393,6 +393,7 @@ elif menu == "📄 Exportar PDF":
 
         except Exception as e:
             st.error(f"❌ Error al generar el PDF: {e}")
+
 
 
 
