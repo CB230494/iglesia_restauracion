@@ -127,12 +127,17 @@ elif menu == "💸 Registro de Gastos":
         enviar = st.form_submit_button("Registrar")
 
         if enviar:
-            resultado = insertar_gasto(nueva_fecha, nuevo_concepto, nuevo_monto, nueva_observacion)
-            if resultado.data:
-                st.success("✅ Gasto registrado exitosamente")
-                st.rerun()
+            if not nuevo_concepto.strip():
+                st.warning("⚠️ El concepto no puede estar vacío.")
+            elif nuevo_monto == 0:
+                st.warning("⚠️ El monto no puede ser cero.")
             else:
-                st.error(f"❌ Error al registrar: {resultado.error}")
+                resultado = insertar_gasto(nueva_fecha, nuevo_concepto, nuevo_monto, nueva_observacion)
+                if resultado.data:
+                    st.success("✅ Gasto registrado exitosamente")
+                    st.rerun()
+                else:
+                    st.error(f"❌ Error al registrar: {resultado.error}")
 
     st.subheader("📋 Gastos registrados")
     gastos = obtener_gastos()
@@ -167,10 +172,15 @@ elif menu == "💸 Registro de Gastos":
                     observacion = st.text_input("Observación", value=gasto["observacion"], key=f"obs_gasto_{id_actual}")
                     col1, col2 = st.columns([1, 1])
                     if col1.button("💾 Guardar", key=f"guardar_gasto_{id_actual}"):
-                        actualizar_gasto(id_actual, fecha, concepto, monto, observacion)
-                        st.session_state[f"edit_gasto_{id_actual}"] = False
-                        st.success("✅ Gasto actualizado")
-                        st.rerun()
+                        if not concepto.strip():
+                            st.warning("⚠️ El concepto no puede estar vacío.")
+                        elif monto == 0:
+                            st.warning("⚠️ El monto no puede ser cero.")
+                        else:
+                            actualizar_gasto(id_actual, fecha, concepto, monto, observacion)
+                            st.session_state[f"edit_gasto_{id_actual}"] = False
+                            st.success("✅ Gasto actualizado")
+                            st.rerun()
                     if col2.button("❌ Cancelar", key=f"cancelar_gasto_{id_actual}"):
                         st.session_state[f"edit_gasto_{id_actual}"] = False
                         st.rerun()
@@ -192,6 +202,7 @@ elif menu == "💸 Registro de Gastos":
                         st.rerun()
     else:
         st.info("No hay gastos registrados.")
+
 
 
 
