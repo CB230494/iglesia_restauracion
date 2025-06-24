@@ -301,7 +301,7 @@ elif menu == "📄 Exportar PDF":
 
             class PDF(FPDF):
                 def header(self):
-                    self.set_fill_color(0, 102, 204)  # Azul fuerte
+                    self.set_fill_color(0, 102, 204)
                     self.set_text_color(255, 255, 255)
                     self.set_font("Arial", "B", 16)
                     self.cell(0, 12, "Informe Financiero", ln=True, align="C", fill=True)
@@ -320,14 +320,14 @@ elif menu == "📄 Exportar PDF":
 
             # Texto institucional
             pdf.set_font("Arial", "", 11)
-            pdf.multi_cell(0, 10, "Este informe fue solicitado por los pastores Jeannett Loaiciga Segura y Carlos Castro Campos", align="L")
+            pdf.multi_cell(0, 10, "Este informe fue solicitado por los pastores Jeannett Loaiciga Segura y Carlos Castro Campos.", align="L")
             pdf.ln(3)
             pdf.set_font("Arial", "I", 10)
-            pdf.cell(0, 10, f"Período: {fecha_inicio} al {fecha_fin}", ln=True)
+            pdf.cell(0, 10, f"Período: {fecha_inicio.strftime('%d-%m-%Y')} al {fecha_fin.strftime('%d-%m-%Y')}.", ln=True)
 
             # Ingresos
             pdf.ln(6)
-            pdf.set_fill_color(204, 229, 255)  # celeste claro
+            pdf.set_fill_color(204, 229, 255)
             pdf.set_font("Arial", "B", 13)
             pdf.cell(0, 10, "Ingresos", ln=True, fill=True)
 
@@ -337,7 +337,7 @@ elif menu == "📄 Exportar PDF":
             pdf.ln(2)
             if ingresos_filtrados:
                 for i in ingresos_filtrados:
-                    fecha = i.get("fecha", "Sin fecha")
+                    fecha = datetime.datetime.strptime(i.get("fecha", ""), "%Y-%m-%d").strftime("%d-%m-%Y")
                     tipo = i.get("concepto") or "Sin tipo"
                     monto = i.get("monto") or 0.0
                     detalle = i.get("observacion") or "Sin detalle"
@@ -346,11 +346,11 @@ elif menu == "📄 Exportar PDF":
                 pdf.cell(0, 10, "No se registraron ingresos en este período.", ln=True)
 
             pdf.set_font("Arial", "B", 11)
-            pdf.cell(0, 10, f"Total ingresos: CRC {total_ingresos:,.2f}", ln=True)
+            pdf.cell(0, 10, f"Total ingresos: CRC {total_ingresos:,.2f}.", ln=True)
 
             # Gastos
             pdf.ln(6)
-            pdf.set_fill_color(255, 204, 204)  # rojo claro
+            pdf.set_fill_color(255, 204, 204)
             pdf.set_font("Arial", "B", 13)
             pdf.cell(0, 10, "Gastos", ln=True, fill=True)
 
@@ -360,7 +360,7 @@ elif menu == "📄 Exportar PDF":
             pdf.ln(2)
             if gastos_filtrados:
                 for g in gastos_filtrados:
-                    fecha = g.get("fecha", "Sin fecha")
+                    fecha = datetime.datetime.strptime(g.get("fecha", ""), "%Y-%m-%d").strftime("%d-%m-%Y")
                     tipo = g.get("concepto") or "Sin tipo"
                     monto = g.get("monto") or 0.0
                     detalle = g.get("observacion") or "Sin detalle"
@@ -369,15 +369,15 @@ elif menu == "📄 Exportar PDF":
                 pdf.cell(0, 10, "No se registraron gastos en este período.", ln=True)
 
             pdf.set_font("Arial", "B", 11)
-            pdf.cell(0, 10, f"Total gastos: CRC {total_gastos:,.2f}", ln=True)
+            pdf.cell(0, 10, f"Total gastos: CRC {total_gastos:,.2f}.", ln=True)
 
             # Balance final
             pdf.ln(10)
-            pdf.set_fill_color(224, 255, 224)  # verde claro
+            pdf.set_fill_color(224, 255, 224)
             pdf.set_font("Arial", "B", 13)
-            pdf.cell(0, 10, f"Balance final: CRC {balance:,.2f}", ln=True, fill=True)
+            pdf.cell(0, 10, f"Balance final: CRC {balance:,.2f}.", ln=True, fill=True)
 
-            # Espacio para firmas
+            # Firmas
             pdf.ln(20)
             pdf.set_font("Arial", "", 11)
             pdf.cell(80, 10, "Firma Pastora Jeannett Loaiciga Segura", ln=0, align="C")
@@ -387,13 +387,12 @@ elif menu == "📄 Exportar PDF":
             pdf.cell(30, 10, "", ln=0)
             pdf.cell(80, 10, "______________________________", ln=1, align="C")
 
-            # Generar PDF
+            # Descargar PDF
             pdf_output = pdf.output(dest="S").encode("latin-1", "ignore")
             st.download_button("📩 Descargar PDF", data=pdf_output, file_name="informe_financiero.pdf", mime="application/pdf")
 
         except Exception as e:
             st.error(f"❌ Error al generar el PDF: {e}")
-
 
 
 
