@@ -32,7 +32,7 @@ menu = st.selectbox(
         "💸 Registro de Gastos",
         "📊 Reporte General",
         "📄 Exportar PDF",
-        "⚙️ Configuración"
+        
     ]
 )
 
@@ -406,12 +406,7 @@ elif menu == "📄 Exportar PDF":
 
 
 
-# -------------------- OTRAS PESTAÑAS EN CONSTRUCCIÓN --------------------
 
-
-elif menu == "⚙️ Configuración":
-    st.title("⚙️ Configuración del sistema")
-    st.warning("Esta sección está en construcción.")
 
 
 
